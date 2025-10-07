@@ -16,6 +16,7 @@ import { LoginViewModel } from '@components/LoginViewModel';
 import { AccessDeniedViewModel } from '@components/AccessDeniedViewModel';
 import { ContactFormViewModel } from '@components/ContactFormViewModel';
 import { SimpleFormViewModel } from '@components/SimpleFormViewModel';
+import { QuizViewModel } from '@components/QuizViewModel';
 
 /**
  * Route configuration interface
@@ -51,6 +52,10 @@ export const routes: RouteConfig[] = [
     {
         path: '/about',
         handler: (context) => renderView(AboutViewModel, context),
+    },
+    {
+        path: '/quiz/:operation',
+        handler: (context) => renderView(QuizViewModel, context),
     },
     {
         path: '/dashboard',

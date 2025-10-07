@@ -105,7 +105,7 @@ export class BaseViewModel {
      */
     public setTemplate(template: string): this {
         this.template = template;
-        this.injectTemplateScript();
+        //this.injectTemplateScript();
         return this;
     }
 
