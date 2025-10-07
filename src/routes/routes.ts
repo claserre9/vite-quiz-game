@@ -51,6 +51,10 @@ export const routes: RouteConfig[] = [
         handler: (context) => renderView(AppViewModel, context),
     },
     {
+        path: '/a-propos',
+        handler: (context) => renderView(AboutViewModel, context),
+    },
+    {
         path: '/about',
         handler: (context) => renderView(AboutViewModel, context),
     },

@@ -13,7 +13,7 @@ export class AppViewModel extends BaseViewModel {
                     </button>
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav ms-auto">
-                            <li class="nav-item"><a class="nav-link" href="/about">À propos</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/a-propos">À propos</a></li>
                         </ul>
                     </div>
                 </div>
