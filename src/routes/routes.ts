@@ -17,6 +17,7 @@ import { AccessDeniedViewModel } from '@components/AccessDeniedViewModel';
 import { ContactFormViewModel } from '@components/ContactFormViewModel';
 import { SimpleFormViewModel } from '@components/SimpleFormViewModel';
 import { QuizViewModel } from '@components/QuizViewModel';
+import { TrainingViewModel } from '@components/TrainingViewModel';
 
 /**
  * Route configuration interface
@@ -50,8 +51,16 @@ export const routes: RouteConfig[] = [
         handler: (context) => renderView(AppViewModel, context),
     },
     {
+        path: '/a-propos',
+        handler: (context) => renderView(AboutViewModel, context),
+    },
+    {
         path: '/about',
         handler: (context) => renderView(AboutViewModel, context),
+    },
+    {
+        path: '/entrainement',
+        handler: (context) => renderView(TrainingViewModel, context),
     },
     {
         path: '/quiz/:operation',
