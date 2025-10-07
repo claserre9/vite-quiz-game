@@ -4,7 +4,8 @@ import path from 'path';
 // Detect GitHub Pages base path automatically when building in CI
 const repoName = process.env.GITHUB_REPOSITORY?.split('/')?.[1];
 const isCI = !!process.env.GITHUB_ACTIONS;
-const base = isCI && repoName ? `/${repoName}/` : '/';
+// Allow overriding base with an absolute URL (e.g., for GitHub Pages) via DEPLOY_BASE
+const base = process.env.DEPLOY_BASE || (isCI && repoName ? `/${repoName}/` : '/');
 
 export default defineConfig({
     base,

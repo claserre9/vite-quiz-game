@@ -36,6 +36,8 @@ jobs:
           # These are provided on GitHub-hosted runners
           GITHUB_ACTIONS: true
           GITHUB_REPOSITORY: ${{ github.repository }}
+          # Set absolute base URL only for GitHub Pages deploy
+          DEPLOY_BASE: https://claserre9.github.io/vite-quiz-game/
 
       - name: Add SPA fallback (copy index.html to 404.html)
         run: cp dist/index.html dist/404.html
