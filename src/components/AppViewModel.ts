@@ -4,6 +4,7 @@ export class AppViewModel extends BaseViewModel {
     constructor(context: PageJS.Context | undefined) {
         super(context);
         this.setTemplate(`
+                    <a href="/about" style="display:none"></a>
             <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
                 <div class="container">
                     <a class="navbar-brand" href="/">🧮 Quiz Math</a>
@@ -22,6 +23,9 @@ export class AppViewModel extends BaseViewModel {
                 <div class="text-center mb-4">
                     <h1 class="display-5">Choisis ton quiz</h1>
                     <p class="lead">Entraîne-toi avec des additions, soustractions ou multiplications. Tout est responsive !</p>
+                    <div class="mt-3">
+                        <a href="/entrainement" class="btn btn-outline-primary">🎯 Mode Entraînement</a>
+                    </div>
                 </div>
 
                 <div class="row g-4">

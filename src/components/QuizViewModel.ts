@@ -19,12 +19,16 @@ export class QuizViewModel extends BaseViewModel {
     public static TIME_LEFT = 15;
     public static NUMBER_OF_QUESTIONS = 20
     public isLoading = observable(true);
-    public errorMessage = observable(null);
+    public errorMessage = observable(null as string | null);
     public questions = observableArray<Question>([]);
     public currentIndex = observable(0);
     public score = observable(0);
     public answerChosen = observable(false);
     public quizFinished = observable(false);
+
+    // training mode flags
+    public isTraining = observable(false);
+    public table = observable<number | null>(null);
 
     public timeLeft = observable(QuizViewModel.TIME_LEFT);
     private timerId: number | null = null;
@@ -53,6 +57,13 @@ export class QuizViewModel extends BaseViewModel {
     constructor(context: PageJS.Context | undefined) {
         super(context);
 
+        // detect training mode & table from querystring
+        const params = new URLSearchParams(context?.querystring || '');
+        const mode = params.get('mode');
+        const tableParam = params.get('table');
+        this.isTraining(mode === 'training');
+        this.table(tableParam !== null && tableParam !== '' ? Number(tableParam) : null);
+
         this.correctSoundObject = new Audio(correctSoundObject);
         this.incorrectSoundObject = new Audio(incorrectSoundObject);
 
@@ -62,7 +73,7 @@ export class QuizViewModel extends BaseViewModel {
         this.setTemplate(this.getTemplate());
 
         this.currentIndex.subscribe(() => {
-            if (!this.quizFinished()) {
+            if (!this.quizFinished() && !this.isTraining()) {
                 this.startTimer();
             }
         });
@@ -90,10 +101,13 @@ export class QuizViewModel extends BaseViewModel {
                         <div class="card-body">
                         <div data-bind="if: !quizFinished() && currentQuestion()">
                             <div class="d-flex justify-content-between bg-light p-2 rounded mb-2">
-                                <div>Question <span data-bind="text: currentIndex() + 1"></span>/<span data-bind="text: totalQuestions"></span></div>
-                                <div><strong>⏰ <span data-bind="text: timeLeft"></span>s</strong></div>
+                                <div>
+                                  <span data-bind="visible: !isTraining()">Question <span data-bind="text: currentIndex() + 1"></span>/<span data-bind="text: totalQuestions"></span></span>
+                                  <span data-bind="visible: isTraining">Mode Entraînement</span>
+                                </div>
+                                <div data-bind="visible: !isTraining()"><strong>⏰ <span data-bind="text: timeLeft"></span>s</strong></div>
                             </div>
-                            <div class="progress mb-3">
+                            <div class="progress mb-3" data-bind="visible: !isTraining()">
                                 <div class="progress-bar" role="progressbar" data-bind="style: { width: ((currentIndex()+1)/totalQuestions()*100 + '%') }"></div>
                             </div>
                             <h2 class="h5 text-center mb-3" data-bind="text: currentQuestion().question"></h2>
@@ -161,7 +175,7 @@ export class QuizViewModel extends BaseViewModel {
     }
 
     private startTimer() {
-        if (this.quizFinished()) return;
+        if (this.quizFinished() || this.isTraining()) return;
 
         if (this.timerId !== null) {
             clearInterval(this.timerId);
@@ -209,6 +223,13 @@ export class QuizViewModel extends BaseViewModel {
             this.isLoading(true);
             this.errorMessage(null);
 
+            // Training mode: generate questions dynamically
+            if (this.isTraining()) {
+                const generated = this.generateTrainingQuestions(op, this.table());
+                this.questions(generated.slice(0, QuizViewModel.NUMBER_OF_QUESTIONS));
+                return;
+            }
+
             const loaders: Record<Op, () => Promise<{ default: any }>> = {
                 addition: () => import('../json/addition.json'),
                 soustraction: () => import('../json/soustraction.json'),
@@ -238,5 +259,51 @@ export class QuizViewModel extends BaseViewModel {
             'btn-success': answer.correct,
             'btn-danger': !answer.correct && answer === question.selectedAnswer(),
         };
+    }
+
+    private generateTrainingQuestions(op: 'addition' | 'soustraction' | 'multiplication', table: number | null): Question[] {
+        const makeQ = (question: string, correctAnswer: number): Question => {
+            const distractors = this.buildDistractors(correctAnswer);
+            const answers = this.shuffleArray([
+                { answer: String(correctAnswer), correct: true },
+                ...distractors.map((n) => ({ answer: String(n), correct: false })),
+            ] as Answer[]) as Answer[];
+            return { question, answers, selectedAnswer: observable<Answer | null>(null) } as Question;
+        };
+
+        const qs: Question[] = [];
+        const t = table ?? 2;
+
+        if (op === 'multiplication') {
+            for (let n = 0; n <= 12; n++) {
+                const result = t * n;
+                qs.push(makeQ(`${t} × ${n} = ?`, result));
+            }
+        } else if (op === 'addition') {
+            for (let n = 0; n <= 20; n++) {
+                const result = t + n;
+                qs.push(makeQ(`${t} + ${n} = ?`, result));
+            }
+        } else {
+            for (let n = 0; n <= 20; n++) {
+                const a = t + n; // ensures non-negative results
+                const result = a - t;
+                qs.push(makeQ(`${a} − ${t} = ?`, result));
+            }
+        }
+
+        return this.shuffleArray(qs).slice(0, QuizViewModel.NUMBER_OF_QUESTIONS) as Question[];
+    }
+
+    private buildDistractors(correct: number): number[] {
+        const set = new Set<number>();
+        const range = Math.max(2, Math.floor(Math.abs(correct) * 0.2) + 2);
+        while (set.size < 3) {
+            const delta = Math.floor(Math.random() * range) + 1;
+            const sign = Math.random() < 0.5 ? -1 : 1;
+            const cand = correct + sign * delta;
+            if (cand !== correct && cand >= -100 && cand <= 1000) set.add(cand);
+        }
+        return Array.from(set);
     }
 }
