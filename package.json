@@ -12,7 +12,8 @@
         "prepare": "husky install",
         "test": "vitest run",
         "test:coverage": "vitest run --coverage",
-        "test:e2e": "playwright test"
+        "test:e2e": "playwright test",
+        "deploy": "npm run build  && gh-pages -d dist"
     },
     "devDependencies": {
         "@types/knockout": "^3.4.77",
@@ -30,7 +31,8 @@
         "vitest": "^1.6.0",
         "@vitest/coverage-v8": "^1.6.0",
         "jsdom": "^24.0.0",
-        "@playwright/test": "^1.47.1"
+        "@playwright/test": "^1.47.1",
+        "gh-pages": "^6.3.0"
     },
     "dependencies": {
         "knockout": "^3.5.1",
