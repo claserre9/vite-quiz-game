@@ -13,7 +13,7 @@
         "test": "vitest run",
         "test:coverage": "vitest run --coverage",
         "test:e2e": "playwright test",
-        "deploy": "npm run build  && gh-pages -d dist"
+        "deploy": "DEPLOY_BASE=/vite-quiz-game/ npm run build && gh-pages -d dist"
     },
     "devDependencies": {
         "@types/knockout": "^3.4.77",
