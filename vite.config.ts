@@ -5,7 +5,12 @@ import path from 'path';
 const repoName = process.env.GITHUB_REPOSITORY?.split('/')?.[1];
 const isCI = !!process.env.GITHUB_ACTIONS;
 // Allow overriding base with an absolute URL (e.g., for GitHub Pages) via DEPLOY_BASE
-const base = process.env.DEPLOY_BASE || (isCI && repoName ? `/${repoName}/` : '/');
+const base =
+    process.env.DEPLOY_BASE || (isCI && repoName ? `/${repoName}/` : '/');
+
+console.log(
+    `Building for ${isCI ? 'GitHub Pages' : 'local development'} with base: ${base}`
+);
 
 export default defineConfig({
     base,
