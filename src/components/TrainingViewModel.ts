@@ -12,23 +12,27 @@ export class TrainingViewModel extends BaseViewModel {
 
   private getTemplate() {
     return `
-      <div class="container my-5" style="max-width: 640px;">
-        <a href="/" class="btn btn-sm btn-primary mb-3">🏠 Accueil</a>
-        <div class="card">
-          <div class="card-body">
-            <h1 class="h4 mb-3">Mode Entraînement</h1>
-            <div class="row g-3 align-items-end">
+      <div class="container qm-training-page" style="max-width: 760px;">
+        <a href="/" class="btn qm-btn-home mb-3">🏠 Accueil</a>
+        <div class="qm-panel">
+          <div class="text-center mb-4">
+            <span class="qm-pill">🎯 Mode Entraînement</span>
+            <h1 class="qm-section-title mt-3 mb-2">Prépare ton défi sur mesure</h1>
+            <p class="qm-muted mb-0">Choisis une opération, une table et lance une session sans pression.</p>
+          </div>
+
+          <div class="row g-3 align-items-end">
               <div class="col-12 col-md-6">
-                <label class="form-label">Type d'opération</label>
-                <select class="form-select" data-bind="value: op">
+                <label class="form-label fw-bold">Type d'opération</label>
+                <select class="form-select qm-select" data-bind="value: op">
                   <option value="addition">Addition</option>
                   <option value="soustraction">Soustraction</option>
                   <option value="multiplication">Multiplication</option>
                 </select>
               </div>
               <div class="col-12 col-md-6">
-                <label class="form-label">Table</label>
-                <select class="form-select" data-bind="value: table">
+                <label class="form-label fw-bold">Table</label>
+                <select class="form-select qm-select" data-bind="value: table">
                   <option value="0">0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -44,12 +48,11 @@ export class TrainingViewModel extends BaseViewModel {
                   <option value="12">12</option>
                 </select>
               </div>
-            </div>
+          </div>
 
-            <div class="mt-4 d-flex gap-2">
-              <button class="btn btn-success" data-bind="click: startTraining">🚀 Commencer</button>
-              <a href="/" class="btn btn-outline-secondary">Annuler</a>
-            </div>
+          <div class="mt-4 d-flex flex-wrap gap-2 justify-content-center">
+            <button class="btn qm-btn px-4 py-3" data-bind="click: startTraining">🚀 Commencer</button>
+            <a href="/" class="btn qm-btn-secondary px-4 py-3">Annuler</a>
           </div>
         </div>
       </div>

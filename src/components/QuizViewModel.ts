@@ -83,45 +83,68 @@ export class QuizViewModel extends BaseViewModel {
     private getTemplate(): string {
         const basePath = '/';
         return `
-        <div class="container my-4 position-relative">
-            
-            <div data-bind="visible: isLoading()">
-                <p class="text-center">🧠 Chargement en cours... Prépare-toi pour un super quiz !</p>
+        <div class="container qm-quiz-page">
+            <div data-bind="visible: isLoading()" class="qm-empty-card text-center">
+                <p class="mb-0">🧠 Chargement en cours... Prépare-toi pour un super quiz !</p>
             </div>
 
-            <div data-bind="visible: errorMessage()" class="alert alert-danger text-center">
+            <div data-bind="visible: errorMessage()" class="qm-empty-card text-center">
+                <h2 class="qm-title-font">Oups, petit contretemps</h2>
                 <p data-bind="text: errorMessage"></p>
-                <button data-bind="click: loadQuestions" class="btn btn-outline-danger mt-2">🔁 Réessayer</button>
+                <button data-bind="click: loadQuestions" class="btn qm-btn mt-2 px-4 py-3">🔁 Réessayer</button>
             </div>
 
             <div data-bind="if: !isLoading() && !errorMessage()">
-                <a href="${basePath}" class="btn btn-sm btn-primary position-absolute top-0 start-0">🏠 Accueil</a>
-                <div class="d-flex min-vh-100 align-items-center justify-content-center">
-                    <div class="card w-100" style="max-width: 640px;">
-                        <div class="card-body">
+                <div class="mx-auto" style="max-width: 860px;">
+                    <div class="d-flex justify-content-start mb-3">
+                        <a href="${basePath}" class="btn qm-btn-home">🏠 Accueil</a>
+                    </div>
+                    <div class="qm-quiz-card">
                         <div data-bind="if: !quizFinished() && currentQuestion()">
-                            <div class="d-flex justify-content-between bg-light p-2 rounded mb-2">
-                                <div>
-                                  <span data-bind="visible: !isTraining()">Question <span data-bind="text: currentIndex() + 1"></span>/<span data-bind="text: totalQuestions"></span></span>
-                                  <span data-bind="visible: isTraining">Mode Entraînement</span>
+                            <div class="qm-quiz-header">
+                                <div class="qm-chip-row">
+                                  <span class="qm-chip" data-bind="visible: !isTraining()">🎯 Question <span data-bind="text: currentIndex() + 1"></span>/<span data-bind="text: totalQuestions"></span></span>
+                                  <span class="qm-chip" data-bind="visible: isTraining">🔥 Mode Entraînement</span>
+                                  <span class="qm-chip">⭐ Score <span data-bind="text: score"></span></span>
                                 </div>
-                                <div data-bind="visible: !isTraining()"><strong>⏰ <span data-bind="text: timeLeft"></span>s</strong></div>
+                                <div class="qm-chip" data-bind="visible: !isTraining()">⏰ <span data-bind="text: timeLeft"></span>s</div>
                             </div>
-                            <div class="progress mb-3" data-bind="visible: !isTraining()">
-                                <div class="progress-bar" role="progressbar" data-bind="style: { width: ((currentIndex()+1)/totalQuestions()*100 + '%') }"></div>
+
+                            <div class="qm-progress-wrap" data-bind="visible: !isTraining()">
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" data-bind="style: { width: ((currentIndex()+1)/totalQuestions()*100 + '%') }"></div>
+                                </div>
                             </div>
-                            <h2 class="h5 text-center mb-3" data-bind="text: currentQuestion().question"></h2>
-                            <div class="d-grid gap-2" data-bind="foreach: currentQuestion().answers">
-                                <button class="btn btn-secondary" data-bind="text: '🎈 ' + answer, click: $root.selectAnswer, css: $parent.getAnswerClasses($parent.currentQuestion(), $data), disable: $parent.answerChosen() || $parent.quizFinished()"></button>
+
+                            <div class="qm-question-card">
+                                <h2 class="qm-question-text text-center" data-bind="text: currentQuestion().question"></h2>
+                                <div class="qm-answer-grid" data-bind="foreach: currentQuestion().answers">
+                                    <button class="btn qm-answer-btn" data-bind="text: '🎈 ' + answer, click: $root.selectAnswer, css: $parent.getAnswerClasses($parent.currentQuestion(), $data), disable: $parent.answerChosen() || $parent.quizFinished()"></button>
+                                </div>
                             </div>
-                            <div class="text-center mt-3">🎯 Score : <strong data-bind="text: score"></strong>/<span data-bind="text: totalQuestions"></span></div>
+
+                            <div class="qm-scoreboard">
+                                <div class="qm-score-item">
+                                    <span class="qm-score-label">Score</span>
+                                    <span class="qm-score-value" data-bind="text: score"></span>
+                                </div>
+                                <div class="qm-score-item">
+                                    <span class="qm-score-label">Restantes</span>
+                                    <span class="qm-score-value" data-bind="text: totalQuestions() - currentIndex()"></span>
+                                </div>
+                                <div class="qm-score-item">
+                                    <span class="qm-score-label">Mode</span>
+                                    <span class="qm-score-value" data-bind="text: isTraining() ? 'Libre' : 'Chrono'"></span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div data-bind="if: quizFinished()" class="text-center mt-4">
-                            <h2>🎉 Tu as terminé !</h2>
-                            <h3 data-bind="text: scoreEvaluation"></h3>
+                        <div data-bind="if: quizFinished()" class="qm-finish">
+                            <span class="qm-finish-badge">🏁 Partie terminée</span>
+                            <h2 class="qm-title-font mt-3">Bravo, tu as terminé !</h2>
+                            <h3 class="qm-muted" data-bind="text: scoreEvaluation"></h3>
                             <h4>🌈 Ton score final : <strong data-bind="text: score"></strong>/<span data-bind="text: totalQuestions"></span></h4>
-                            <button data-bind="click: restart" class="btn btn-primary mt-3">🔄 Recommencer</button>
+                            <button data-bind="click: restart" class="btn qm-btn mt-3 px-4 py-3">🔄 Recommencer</button>
                         </div>
                     </div>
                 </div>
