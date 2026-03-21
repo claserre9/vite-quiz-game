@@ -86,6 +86,75 @@ export class AppViewModel extends BaseViewModel {
                             </div>
                         </div>
                     </section>
+
+                    <section class="my-2 text-center">
+                        <h2 class="qm-section-title">Nouveaux défis</h2>
+                        <p class="qm-section-copy">
+                            Varie les mécaniques pour travailler la logique, la rapidité et l’observation.
+                        </p>
+                    </section>
+
+                    <section class="row g-4 pb-5">
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card qm-feature-card" data-tone="addition">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="qm-feature-icon">🕳️</div>
+                                    <span class="qm-badge-soft mb-3">Priorité 1</span>
+                                    <h3 class="card-title h4">Nombre manquant</h3>
+                                    <p class="card-text qm-muted">Trouve la valeur cachée dans une addition, soustraction ou multiplication.</p>
+                                    <a href="/quiz/addition?exercise=missing-number" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card qm-feature-card" data-tone="soustraction">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="qm-feature-icon">✅</div>
+                                    <span class="qm-badge-soft mb-3">Priorité 2</span>
+                                    <h3 class="card-title h4">Vrai ou faux</h3>
+                                    <p class="card-text qm-muted">Décide en un éclair si une égalité mathématique est correcte.</p>
+                                    <a href="/quiz/multiplication?exercise=true-false" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card qm-feature-card" data-tone="multiplication">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="qm-feature-icon">⚖️</div>
+                                    <span class="qm-badge-soft mb-3">Priorité 3</span>
+                                    <h3 class="card-title h4">Comparaison rapide</h3>
+                                    <p class="card-text qm-muted">Repère instantanément le plus grand nombre, ou l’égalité.</p>
+                                    <a href="/quiz/general?exercise=comparison" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card qm-feature-card" data-tone="addition">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="qm-feature-icon">⏱️</div>
+                                    <span class="qm-badge-soft mb-3">Priorité 4</span>
+                                    <h3 class="card-title h4">Défi chrono</h3>
+                                    <p class="card-text qm-muted">Enchaîne le plus de bonnes réponses possible en 60 secondes.</p>
+                                    <a href="/quiz/general?exercise=chrono" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card qm-feature-card" data-tone="soustraction">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="qm-feature-icon">🔢</div>
+                                    <span class="qm-badge-soft mb-3">Priorité 5</span>
+                                    <h3 class="card-title h4">Suites logiques</h3>
+                                    <p class="card-text qm-muted">Complète des suites numériques et affine ton raisonnement.</p>
+                                    <a href="/quiz/general?exercise=sequence" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </main>
             </div>
         `);
