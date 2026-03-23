@@ -69,10 +69,12 @@ export class QuizViewModel extends BaseViewModel {
     public totalAnswered = observable(0);
     public gameModeLabel = observable('Chrono');
     public headline = observable('Quiz classique');
+    public bestScoreLabel = observable('Aucun record');
 
     private timerId: number | null = null;
     private correctSoundObject: HTMLAudioElement;
     private incorrectSoundObject: HTMLAudioElement;
+    private scoreSaved = false;
 
     public scoreEvaluation = pureComputed(() => {
         const s = this.score();
@@ -198,6 +200,10 @@ export class QuizViewModel extends BaseViewModel {
                                     <span class="qm-score-label">Mode</span>
                                     <span class="qm-score-value" data-bind="text: gameModeLabel"></span>
                                 </div>
+                                <div class="qm-score-item">
+                                    <span class="qm-score-label">Record</span>
+                                    <span class="qm-score-value qm-score-value-sm" data-bind="text: bestScoreLabel"></span>
+                                </div>
                             </div>
                         </div>
 
@@ -256,6 +262,7 @@ export class QuizViewModel extends BaseViewModel {
         this.totalAnswered(0);
         this.quizFinished(false);
         this.answerChosen(false);
+        this.scoreSaved = false;
         await this.loadQuestions(this.context?.params?.operation);
     }
 
@@ -272,6 +279,7 @@ export class QuizViewModel extends BaseViewModel {
             this.currentIndex(0);
             this.quizFinished(false);
             this.answerChosen(false);
+            this.scoreSaved = false;
             this.currentOperation(op);
             this.headline(
                 op === 'general'
@@ -281,17 +289,22 @@ export class QuizViewModel extends BaseViewModel {
             this.gameModeLabel(this.resolveGameModeLabel(exercise));
             this.totalAnswered(0);
             this.questions([]);
+            this.bestScoreLabel(
+                this.loadBestScoreLabel(op, exercise, this.isTraining())
+            );
 
             if (this.isTraining()) {
-                const generated = this.generateClassicTrainingQuestions(
-                    op,
-                    this.table()
-                );
+                const generated =
+                    exercise === 'classic'
+                        ? this.generateClassicTrainingQuestions(op, this.table())
+                        : this.generateDynamicQuestions(op, exercise);
                 this.questions(
                     generated.slice(0, QuizViewModel.NUMBER_OF_QUESTIONS)
                 );
                 this.headline(
-                    `${EXERCISE_LABELS.classic} - ${this.getOperationLabel(op)}`
+                    op === 'general'
+                        ? `${EXERCISE_LABELS[exercise]} - Entraînement`
+                        : `${EXERCISE_LABELS[exercise]} - ${this.getOperationLabel(op)}`
                 );
                 this.gameModeLabel('Libre');
                 return;
@@ -389,8 +402,7 @@ export class QuizViewModel extends BaseViewModel {
         this.timerId = window.setInterval(() => {
             this.timeLeft(this.timeLeft() - 1);
             if (this.timeLeft() <= 0) {
-                this.stopTimer();
-                this.quizFinished(true);
+                this.finalizeQuiz();
             }
         }, 1000);
     }
@@ -407,7 +419,7 @@ export class QuizViewModel extends BaseViewModel {
 
         if (this.exerciseType() === 'chrono') {
             if (this.timeLeft() <= 0) {
-                this.quizFinished(true);
+                this.finalizeQuiz();
                 return;
             }
             const nextIndex = this.currentIndex() + 1;
@@ -420,8 +432,7 @@ export class QuizViewModel extends BaseViewModel {
         if (nextIndex < this.totalQuestions()) {
             this.currentIndex(nextIndex);
         } else {
-            this.quizFinished(true);
-            this.stopTimer();
+            this.finalizeQuiz();
         }
     }
 
@@ -511,8 +522,14 @@ export class QuizViewModel extends BaseViewModel {
         const questions: Question[] = [];
 
         for (let i = 0; i < count; i++) {
-            const a = this.randomInt(1, 12);
-            const b = this.randomInt(1, 12);
+            const a =
+                safeOp === 'multiplication'
+                    ? this.randomInt(2, 12)
+                    : this.randomInt(2, 20);
+            const b =
+                safeOp === 'multiplication'
+                    ? this.randomInt(2, 12)
+                    : this.randomInt(2, 20);
 
             if (safeOp === 'addition') {
                 const total = a + b;
@@ -555,8 +572,16 @@ export class QuizViewModel extends BaseViewModel {
         const questions: Question[] = [];
 
         for (let i = 0; i < count; i++) {
-            const a = this.randomInt(1, 12);
-            const b = this.randomInt(1, 12);
+            const a =
+                safeOp === 'multiplication'
+                    ? this.randomInt(2, 12)
+                    : this.randomInt(5, 30);
+            const b =
+                safeOp === 'soustraction'
+                    ? this.randomInt(1, a)
+                    : safeOp === 'multiplication'
+                      ? this.randomInt(2, 12)
+                      : this.randomInt(5, 30);
             const correctResult = this.calculate(a, b, safeOp);
             const shouldBeTrue = Math.random() < 0.5;
             const shownResult = shouldBeTrue
@@ -586,8 +611,8 @@ export class QuizViewModel extends BaseViewModel {
         const questions: Question[] = [];
 
         for (let i = 0; i < count; i++) {
-            const left = this.randomInt(5, 99);
-            const right = this.randomInt(5, 99);
+            const left = this.randomInt(10, 199);
+            const right = Math.random() < 0.2 ? left : this.randomInt(10, 199);
             let correct = '⬅️ Gauche';
             if (right > left) correct = '➡️ Droite';
             if (left === right) correct = '🤝 Égal';
@@ -611,11 +636,16 @@ export class QuizViewModel extends BaseViewModel {
         for (let i = 0; i < count; i++) {
             const currentOp: Exclude<Operation, 'general'> =
                 op === 'general' ? this.randomOperation() : op;
-            const a = this.randomInt(1, 12);
+            const a =
+                currentOp === 'multiplication'
+                    ? this.randomInt(2, 12)
+                    : this.randomInt(3, 20);
             const b =
                 currentOp === 'soustraction'
                     ? this.randomInt(1, a)
-                    : this.randomInt(1, 12);
+                    : currentOp === 'multiplication'
+                      ? this.randomInt(2, 12)
+                      : this.randomInt(3, 20);
             questions.push(
                 this.makeChoiceQuestion(
                     this.renderOperation(a, b, currentOp),
@@ -631,7 +661,7 @@ export class QuizViewModel extends BaseViewModel {
 
         for (let i = 0; i < count; i++) {
             const kind = this.randomInt(0, 2);
-            const start = this.randomInt(1, 15);
+            const start = this.randomInt(2, 18);
             const step = this.randomInt(2, 6);
 
             if (kind === 0) {
@@ -662,11 +692,11 @@ export class QuizViewModel extends BaseViewModel {
                     )
                 );
             } else {
-                const seq = [start, start + 2, start + 5, start + 9];
+                const seq = [start, start + 2, start + 6, start + 12];
                 questions.push(
                     this.makeChoiceQuestion(
                         `Trouve le prochain nombre : ${seq[0]}, ${seq[1]}, ${seq[2]}, ${seq[3]}, ?`,
-                        start + 14
+                        start + 20
                     )
                 );
             }
@@ -762,5 +792,64 @@ export class QuizViewModel extends BaseViewModel {
     private randomNonZeroDelta(min: number, max: number): number {
         const delta = this.randomInt(min, max);
         return Math.random() < 0.5 ? -delta : delta;
+    }
+
+    private finalizeQuiz() {
+        this.stopTimer();
+        if (!this.scoreSaved) {
+            this.saveBestScore();
+            this.scoreSaved = true;
+        }
+        this.quizFinished(true);
+    }
+
+    private saveBestScore() {
+        if (typeof window === 'undefined' || !window.localStorage) return;
+
+        const key = this.getBestScoreKey(
+            this.currentOperation(),
+            this.exerciseType(),
+            this.isTraining()
+        );
+        const currentValue = this.score();
+        const previousValue = Number(window.localStorage.getItem(key) || '0');
+
+        if (currentValue > previousValue) {
+            window.localStorage.setItem(key, String(currentValue));
+            this.bestScoreLabel(this.formatBestScoreLabel(currentValue));
+            return;
+        }
+
+        if (previousValue > 0) {
+            this.bestScoreLabel(this.formatBestScoreLabel(previousValue));
+        }
+    }
+
+    private loadBestScoreLabel(
+        op: Operation,
+        exercise: ExerciseType,
+        isTraining: boolean
+    ): string {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return 'Aucun record';
+        }
+
+        const key = this.getBestScoreKey(op, exercise, isTraining);
+        const stored = Number(window.localStorage.getItem(key) || '0');
+        return stored > 0 ? this.formatBestScoreLabel(stored) : 'Aucun record';
+    }
+
+    private getBestScoreKey(
+        op: Operation,
+        exercise: ExerciseType,
+        isTraining: boolean
+    ): string {
+        return `quiz-math-best:${exercise}:${op}:${isTraining ? 'training' : 'normal'}`;
+    }
+
+    private formatBestScoreLabel(value: number): string {
+        return this.exerciseType() === 'chrono'
+            ? `${value} pts`
+            : `${value}/${QuizViewModel.NUMBER_OF_QUESTIONS}`;
     }
 }

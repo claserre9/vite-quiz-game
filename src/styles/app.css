@@ -383,7 +383,7 @@ a {
 
 .qm-scoreboard {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.8rem;
     margin-top: 1rem;
 }
@@ -409,6 +409,11 @@ a {
     margin-top: 0.25rem;
     font-size: 1.5rem;
     font-weight: 900;
+}
+
+.qm-score-value-sm {
+    font-size: 1rem;
+    line-height: 1.2;
 }
 
 .qm-finish {
