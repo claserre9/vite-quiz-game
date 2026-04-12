@@ -1,28 +1,16 @@
 import { BaseViewModel } from '../core/BaseViewModel';
 import { url } from '../core/url';
 import { observable, observableArray, pureComputed } from 'knockout';
+import {
+    generateQuestions,
+    shuffleArray,
+    type Operation,
+    type ExerciseType,
+    type Answer,
+    type Question,
+} from '../core/QuestionGenerator';
 import incorrectSoundObject from '../medias/sounds/incorrect.mp3';
 import correctSoundObject from '../medias/sounds/correct.mp3';
-
-type Operation = 'addition' | 'soustraction' | 'multiplication' | 'general';
-type ExerciseType =
-    | 'classic'
-    | 'missing-number'
-    | 'true-false'
-    | 'comparison'
-    | 'chrono'
-    | 'sequence';
-
-interface Answer {
-    answer: string;
-    correct: boolean;
-}
-
-interface Question {
-    question: string;
-    answers: Answer[];
-    selectedAnswer: KnockoutObservable<Answer | null>;
-}
 
 const OPERATIONS: readonly Operation[] = [
     'addition',
@@ -56,7 +44,6 @@ export class QuizViewModel extends BaseViewModel {
     public static CHRONO_BATCH_SIZE = 25;
 
     public isLoading = observable(true);
-    public maxFactor = observable<number | null>(null);
     public errorMessage = observable(null as string | null);
     public questions = observableArray<Question>([]);
     public currentIndex = observable(0);
@@ -65,6 +52,7 @@ export class QuizViewModel extends BaseViewModel {
     public quizFinished = observable(false);
     public isTraining = observable(false);
     public table = observable<number | null>(null);
+    public maxFactor = observable<number | null>(null);
     public timeLeft = observable(QuizViewModel.TIME_LEFT);
     public exerciseType = observable<ExerciseType>('classic');
     public currentOperation = observable<Operation>('addition');
@@ -87,13 +75,15 @@ export class QuizViewModel extends BaseViewModel {
             return '💪 Continue, tu prends le rythme !';
         }
 
-        if (s >= 18) return '🏆 Parfait ! Tu es un champion !';
-        if (s >= 16) return '🌟 Excellent travail !';
-        if (s >= 14) return '😅 Pas terrible, mais ça peut aller...';
-        if (s >= 12) return '🤦 Mouais, tu peux mieux faire quand même';
-        if (s >= 10) return "😬 C'est la moyenne, un peu faible non ?";
-        if (s >= 8) return "🙈 Aïe aïe aïe, c'est pas glorieux...";
-        return '💩 Catastrophique ! Retourne réviser !';
+        const total = this.totalQuestions();
+        const pct = total > 0 ? s / total : 0;
+
+        if (pct >= 0.95) return '🏆 Parfait ! Tu es un champion !';
+        if (pct >= 0.80) return '🌟 Excellent travail !';
+        if (pct >= 0.65) return '👍 Très bien, continue comme ça !';
+        if (pct >= 0.50) return '😅 Pas mal, mais tu peux faire mieux !';
+        if (pct >= 0.35) return "😬 C'est la moyenne, encore un effort !";
+        return '💪 Continue à t\'entraîner, ça va venir !';
     });
 
     public currentQuestion = pureComputed(() => {
@@ -112,19 +102,13 @@ export class QuizViewModel extends BaseViewModel {
         super(context);
 
         const params = new URLSearchParams(context?.querystring || '');
-        const mode = params.get('mode');
         const tableParam = params.get('table');
-        const exerciseParam = params.get('exercise');
         const maxFactorParam = params.get('maxFactor');
 
-        this.isTraining(mode === 'training');
-        this.table(
-            tableParam !== null && tableParam !== '' ? Number(tableParam) : null
-        );
-        this.maxFactor(
-            maxFactorParam !== null && maxFactorParam !== '' ? Number(maxFactorParam) : null
-        );
-        this.exerciseType(this.parseExercise(exerciseParam));
+        this.isTraining(params.get('mode') === 'training');
+        this.table(tableParam !== null && tableParam !== '' ? Number(tableParam) : null);
+        this.maxFactor(maxFactorParam !== null && maxFactorParam !== '' ? Number(maxFactorParam) : null);
+        this.exerciseType(this.parseExercise(params.get('exercise')));
 
         this.correctSoundObject = new Audio(correctSoundObject);
         this.incorrectSoundObject = new Audio(incorrectSoundObject);
@@ -227,15 +211,6 @@ export class QuizViewModel extends BaseViewModel {
         </div>`;
     }
 
-    shuffleArray<T>(array: T[]) {
-        const newArray = array.slice();
-        for (let i = newArray.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-        }
-        return newArray;
-    }
-
     selectAnswer = async (answer: Answer) => {
         if (this.answerChosen() || !this.currentQuestion()) return;
 
@@ -274,9 +249,7 @@ export class QuizViewModel extends BaseViewModel {
 
     async loadQuestions(operation?: string): Promise<void> {
         try {
-            const op = this.parseOperation(
-                operation ?? this.context?.params?.operation
-            );
+            const op = this.parseOperation(operation ?? this.context?.params?.operation);
             const exercise = this.exerciseType();
 
             this.isLoading(true);
@@ -295,17 +268,15 @@ export class QuizViewModel extends BaseViewModel {
             this.gameModeLabel(this.resolveGameModeLabel(exercise));
             this.totalAnswered(0);
             this.questions([]);
-            this.bestScoreLabel(
-                this.loadBestScoreLabel(op, exercise, this.isTraining())
-            );
+            this.bestScoreLabel(this.loadBestScoreLabel(op, exercise, this.isTraining()));
 
             if (this.isTraining()) {
-                const generated =
-                    exercise === 'classic'
-                        ? this.generateClassicTrainingQuestions(op, this.table())
-                        : this.generateDynamicQuestions(op, exercise);
                 this.questions(
-                    generated.slice(0, QuizViewModel.NUMBER_OF_QUESTIONS)
+                    generateQuestions(op, exercise, {
+                        count: QuizViewModel.NUMBER_OF_QUESTIONS,
+                        table: this.table(),
+                        maxFactor: this.maxFactor(),
+                    })
                 );
                 this.headline(
                     op === 'general'
@@ -317,9 +288,11 @@ export class QuizViewModel extends BaseViewModel {
             }
 
             if (exercise === 'classic') {
-                this.questions(await this.loadClassicQuestions(op));
+                this.questions(await this.loadClassicQuestionsFromJson(op));
             } else {
-                this.questions(this.generateDynamicQuestions(op, exercise));
+                this.questions(
+                    generateQuestions(op, exercise, { count: QuizViewModel.NUMBER_OF_QUESTIONS })
+                );
             }
 
             if (exercise === 'chrono') {
@@ -331,9 +304,7 @@ export class QuizViewModel extends BaseViewModel {
             }
         } catch (error) {
             console.error('Error loading questions:', error);
-            this.errorMessage(
-                "Oups ! Une erreur s'est produite en chargeant les questions."
-            );
+            this.errorMessage("Oups ! Une erreur s'est produite en chargeant les questions.");
         } finally {
             this.isLoading(false);
         }
@@ -343,15 +314,12 @@ export class QuizViewModel extends BaseViewModel {
         if (!question || !question.selectedAnswer()) return null;
         return {
             'btn-success': answer.correct,
-            'btn-danger':
-                !answer.correct && answer === question.selectedAnswer(),
+            'btn-danger': !answer.correct && answer === question.selectedAnswer(),
         };
     }
 
     private parseOperation(operation?: string): Operation {
-        const value = String(operation || 'addition')
-            .replace(/^\/+/, '')
-            .toLowerCase();
+        const value = String(operation || 'addition').replace(/^\/+/, '').toLowerCase();
         return (OPERATIONS as readonly string[]).includes(value)
             ? (value as Operation)
             : 'addition';
@@ -370,7 +338,7 @@ export class QuizViewModel extends BaseViewModel {
         return 'Chrono';
     }
 
-    private async loadClassicQuestions(op: Operation): Promise<Question[]> {
+    private async loadClassicQuestionsFromJson(op: Operation): Promise<Question[]> {
         const fallback = 'addition' as const;
         const safeOp = op === 'general' ? fallback : op;
         const loaders = {
@@ -380,11 +348,10 @@ export class QuizViewModel extends BaseViewModel {
         };
 
         const questions = (await loaders[safeOp]()).default;
-        const shuffledQuestions = this.shuffleArray(questions);
-        return shuffledQuestions
+        return shuffleArray(questions)
             .map((q) => ({
                 ...q,
-                answers: this.shuffleArray(q.answers as Answer[]),
+                answers: shuffleArray(q.answers as Answer[]),
                 selectedAnswer: observable<Answer | null>(null),
             }))
             .slice(0, QuizViewModel.NUMBER_OF_QUESTIONS) as Question[];
@@ -428,8 +395,7 @@ export class QuizViewModel extends BaseViewModel {
                 this.finalizeQuiz();
                 return;
             }
-            const nextIndex = this.currentIndex() + 1;
-            this.currentIndex(nextIndex);
+            this.currentIndex(this.currentIndex() + 1);
             this.ensureChronoQuestionBuffer();
             return;
         }
@@ -443,362 +409,11 @@ export class QuizViewModel extends BaseViewModel {
     }
 
     private ensureChronoQuestionBuffer() {
-        const remaining = this.totalQuestions() - this.currentIndex();
-        if (remaining > 10) return;
-
-        const extraQuestions = this.generateDynamicQuestions(
-            this.currentOperation(),
-            'chrono',
-            QuizViewModel.CHRONO_BATCH_SIZE
-        );
-        this.questions([...this.questions(), ...extraQuestions]);
-    }
-
-    private generateDynamicQuestions(
-        op: Operation,
-        exercise: ExerciseType,
-        count = QuizViewModel.NUMBER_OF_QUESTIONS
-    ): Question[] {
-        switch (exercise) {
-            case 'missing-number':
-                return this.generateMissingNumberQuestions(op, count);
-            case 'true-false':
-                return this.generateTrueFalseQuestions(op, count);
-            case 'comparison':
-                return this.generateComparisonQuestions(count);
-            case 'chrono':
-                return this.generateChronoQuestions(op, count);
-            case 'sequence':
-                return this.generateSequenceQuestions(count);
-            default:
-                return this.generateClassicTrainingQuestions(op, null).slice(
-                    0,
-                    count
-                );
-        }
-    }
-
-    private generateClassicTrainingQuestions(
-        op: Operation,
-        table: number | null
-    ): Question[] {
-        const safeOp = op === 'general' ? 'addition' : op;
-        const makeQuestion = (
-            question: string,
-            correctAnswer: number
-        ): Question => {
-            const distractors = this.buildDistractors(correctAnswer);
-            return {
-                question,
-                answers: this.shuffleArray([
-                    { answer: `🎈 ${correctAnswer}`, correct: true },
-                    ...distractors.map((n) => ({
-                        answer: `🎈 ${n}`,
-                        correct: false,
-                    })),
-                ]),
-                selectedAnswer: observable<Answer | null>(null),
-            };
-        };
-
-        const qs: Question[] = [];
-        const t = table ?? this.randomInt(2, 12);
-        const max = this.maxFactor() ?? (safeOp === 'multiplication' ? 12 : 20);
-
-        if (safeOp === 'multiplication') {
-            for (let n = 1; n <= max; n++)
-                qs.push(makeQuestion(`${t} × ${n} = ?`, t * n));
-        } else if (safeOp === 'addition') {
-            for (let n = 1; n <= max; n++)
-                qs.push(makeQuestion(`${t} + ${n} = ?`, t + n));
-        } else {
-            for (let n = 1; n <= max; n++) {
-                const a = t + n;
-                qs.push(makeQuestion(`${a} − ${t} = ?`, a - t));
-            }
-        }
-
-        return this.shuffleArray(qs);
-    }
-
-    private generateMissingNumberQuestions(
-        op: Operation,
-        count: number
-    ): Question[] {
-        const safeOp = op === 'general' ? 'addition' : op;
-        const questions: Question[] = [];
-
-        for (let i = 0; i < count; i++) {
-            const a =
-                safeOp === 'multiplication'
-                    ? this.randomInt(2, 12)
-                    : this.randomInt(2, 20);
-            const b =
-                safeOp === 'multiplication'
-                    ? this.randomInt(2, 12)
-                    : this.randomInt(2, 20);
-
-            if (safeOp === 'addition') {
-                const total = a + b;
-                const missingFirst = Math.random() < 0.5;
-                const question = missingFirst
-                    ? `❓ + ${b} = ${total}`
-                    : `${a} + ❓ = ${total}`;
-                questions.push(
-                    this.makeChoiceQuestion(question, missingFirst ? a : b)
-                );
-            } else if (safeOp === 'soustraction') {
-                const total = a + b;
-                const missingFirst = Math.random() < 0.5;
-                const question = missingFirst
-                    ? `❓ − ${a} = ${b}`
-                    : `${total} − ❓ = ${b}`;
-                questions.push(
-                    this.makeChoiceQuestion(question, missingFirst ? total : a)
-                );
-            } else {
-                const total = a * b;
-                const missingFirst = Math.random() < 0.5;
-                const question = missingFirst
-                    ? `❓ × ${b} = ${total}`
-                    : `${a} × ❓ = ${total}`;
-                questions.push(
-                    this.makeChoiceQuestion(question, missingFirst ? a : b)
-                );
-            }
-        }
-
-        return questions;
-    }
-
-    private generateTrueFalseQuestions(
-        op: Operation,
-        count: number
-    ): Question[] {
-        const safeOp = op === 'general' ? 'addition' : op;
-        const questions: Question[] = [];
-
-        for (let i = 0; i < count; i++) {
-            const a =
-                safeOp === 'multiplication'
-                    ? this.randomInt(2, 12)
-                    : this.randomInt(5, 30);
-            const b =
-                safeOp === 'soustraction'
-                    ? this.randomInt(1, a)
-                    : safeOp === 'multiplication'
-                      ? this.randomInt(2, 12)
-                      : this.randomInt(5, 30);
-            const correctResult = this.calculate(a, b, safeOp);
-            const shouldBeTrue = Math.random() < 0.5;
-            const shownResult = shouldBeTrue
-                ? correctResult
-                : correctResult + this.randomNonZeroDelta(1, 4);
-
-            questions.push({
-                question: `${this.renderExpression(a, b, safeOp)} = ${shownResult}`,
-                answers: this.shuffleArray([
-                    {
-                        answer: '✅ Vrai',
-                        correct: shownResult === correctResult,
-                    },
-                    {
-                        answer: '❌ Faux',
-                        correct: shownResult !== correctResult,
-                    },
-                ]),
-                selectedAnswer: observable<Answer | null>(null),
-            });
-        }
-
-        return questions;
-    }
-
-    private generateComparisonQuestions(count: number): Question[] {
-        const questions: Question[] = [];
-
-        for (let i = 0; i < count; i++) {
-            const left = this.randomInt(10, 199);
-            const right = Math.random() < 0.2 ? left : this.randomInt(10, 199);
-            let correct = '⬅️ Gauche';
-            if (right > left) correct = '➡️ Droite';
-            if (left === right) correct = '🤝 Égal';
-
-            questions.push({
-                question: `Quel nombre est le plus grand ? ${left}   vs   ${right}`,
-                answers: this.shuffleArray([
-                    { answer: '⬅️ Gauche', correct: correct === '⬅️ Gauche' },
-                    { answer: '➡️ Droite', correct: correct === '➡️ Droite' },
-                    { answer: '🤝 Égal', correct: correct === '🤝 Égal' },
-                ]),
-                selectedAnswer: observable<Answer | null>(null),
-            });
-        }
-
-        return questions;
-    }
-
-    private generateChronoQuestions(op: Operation, count: number): Question[] {
-        const questions: Question[] = [];
-        for (let i = 0; i < count; i++) {
-            const currentOp: Exclude<Operation, 'general'> =
-                op === 'general' ? this.randomOperation() : op;
-            const a =
-                currentOp === 'multiplication'
-                    ? this.randomInt(2, 12)
-                    : this.randomInt(3, 20);
-            const b =
-                currentOp === 'soustraction'
-                    ? this.randomInt(1, a)
-                    : currentOp === 'multiplication'
-                      ? this.randomInt(2, 12)
-                      : this.randomInt(3, 20);
-            questions.push(
-                this.makeChoiceQuestion(
-                    this.renderOperation(a, b, currentOp),
-                    this.calculate(a, b, currentOp)
-                )
-            );
-        }
-        return questions;
-    }
-
-    private generateSequenceQuestions(count: number): Question[] {
-        const questions: Question[] = [];
-
-        for (let i = 0; i < count; i++) {
-            const kind = this.randomInt(0, 2);
-            const start = this.randomInt(2, 18);
-            const step = this.randomInt(2, 6);
-
-            if (kind === 0) {
-                const seq = [
-                    start,
-                    start + step,
-                    start + step * 2,
-                    start + step * 3,
-                ];
-                questions.push(
-                    this.makeChoiceQuestion(
-                        `Complète la suite : ${seq[0]}, ${seq[1]}, ${seq[2]}, ?`,
-                        seq[3]
-                    )
-                );
-            } else if (kind === 1) {
-                const ratio = this.randomInt(2, 4);
-                const seq = [
-                    start,
-                    start * ratio,
-                    start * ratio * ratio,
-                    start * ratio * ratio * ratio,
-                ];
-                questions.push(
-                    this.makeChoiceQuestion(
-                        `Complète la suite : ${seq[0]}, ${seq[1]}, ${seq[2]}, ?`,
-                        seq[3]
-                    )
-                );
-            } else {
-                const seq = [start, start + 2, start + 6, start + 12];
-                questions.push(
-                    this.makeChoiceQuestion(
-                        `Trouve le prochain nombre : ${seq[0]}, ${seq[1]}, ${seq[2]}, ${seq[3]}, ?`,
-                        start + 20
-                    )
-                );
-            }
-        }
-
-        return questions;
-    }
-
-    private makeChoiceQuestion(
-        question: string,
-        correctAnswer: number
-    ): Question {
-        const distractors = this.buildDistractors(correctAnswer);
-        return {
-            question,
-            answers: this.shuffleArray([
-                { answer: `🎈 ${correctAnswer}`, correct: true },
-                ...distractors.map((n) => ({
-                    answer: `🎈 ${n}`,
-                    correct: false,
-                })),
-            ]),
-            selectedAnswer: observable<Answer | null>(null),
-        };
-    }
-
-    private buildDistractors(correct: number): number[] {
-        const set = new Set<number>();
-        const range = Math.max(2, Math.floor(Math.abs(correct) * 0.25) + 2);
-        while (set.size < 3) {
-            const delta = Math.floor(Math.random() * range) + 1;
-            const sign = Math.random() < 0.5 ? -1 : 1;
-            const candidate = correct + sign * delta;
-            if (
-                candidate !== correct &&
-                candidate >= -100 &&
-                candidate <= 1000
-            ) {
-                set.add(candidate);
-            }
-        }
-        return Array.from(set);
-    }
-
-    private calculate(
-        a: number,
-        b: number,
-        op: Exclude<Operation, 'general'>
-    ): number {
-        if (op === 'addition') return a + b;
-        if (op === 'soustraction') return a - b;
-        return a * b;
-    }
-
-    private renderOperation(
-        a: number,
-        b: number,
-        op: Exclude<Operation, 'general'>
-    ): string {
-        return `${this.renderExpression(a, b, op)} = ?`;
-    }
-
-    private renderExpression(
-        a: number,
-        b: number,
-        op: Exclude<Operation, 'general'>
-    ): string {
-        if (op === 'addition') return `${a} + ${b}`;
-        if (op === 'soustraction') return `${a} − ${b}`;
-        return `${a} × ${b}`;
-    }
-
-    private getOperationLabel(op: Operation): string {
-        if (op === 'soustraction') return 'Soustraction';
-        if (op === 'multiplication') return 'Multiplication';
-        if (op === 'general') return 'Mix';
-        return 'Addition';
-    }
-
-    private randomOperation(): Exclude<Operation, 'general'> {
-        const values: Exclude<Operation, 'general'>[] = [
-            'addition',
-            'soustraction',
-            'multiplication',
-        ];
-        return values[this.randomInt(0, values.length - 1)];
-    }
-
-    private randomInt(min: number, max: number): number {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    private randomNonZeroDelta(min: number, max: number): number {
-        const delta = this.randomInt(min, max);
-        return Math.random() < 0.5 ? -delta : delta;
+        if (this.totalQuestions() - this.currentIndex() > 10) return;
+        const extra = generateQuestions(this.currentOperation(), 'chrono', {
+            count: QuizViewModel.CHRONO_BATCH_SIZE,
+        });
+        this.questions([...this.questions(), ...extra]);
     }
 
     private finalizeQuiz() {
@@ -813,55 +428,57 @@ export class QuizViewModel extends BaseViewModel {
     private saveBestScore() {
         if (typeof window === 'undefined' || !window.localStorage) return;
 
-        const key = this.getBestScoreKey(
-            this.currentOperation(),
-            this.exerciseType(),
-            this.isTraining()
-        );
-        const currentValue = this.score();
-        const previousValue = Number(window.localStorage.getItem(key) || '0');
+        const key = this.getBestScoreKey(this.currentOperation(), this.exerciseType(), this.isTraining());
+        const currentScore = this.score();
+        const currentTotal = this.totalQuestions();
+        const previous = this.parseStoredScore(window.localStorage.getItem(key));
 
-        if (currentValue > previousValue) {
-            window.localStorage.setItem(key, String(currentValue));
-            this.bestScoreLabel(this.formatBestScoreLabel(currentValue));
-            return;
-        }
+        const currentPct = currentTotal > 0 ? currentScore / currentTotal : 0;
+        const previousPct = previous ? previous.score / previous.total : 0;
 
-        if (previousValue > 0) {
-            this.bestScoreLabel(this.formatBestScoreLabel(previousValue));
+        if (currentPct > previousPct) {
+            window.localStorage.setItem(key, `${currentScore}/${currentTotal}`);
+            this.bestScoreLabel(this.formatBestScoreLabel(currentScore, currentTotal));
+        } else if (previous) {
+            this.bestScoreLabel(this.formatBestScoreLabel(previous.score, previous.total));
         }
     }
 
-    private loadBestScoreLabel(
-        op: Operation,
-        exercise: ExerciseType,
-        isTraining: boolean
-    ): string {
-        if (typeof window === 'undefined' || !window.localStorage) {
-            return 'Aucun record';
-        }
-
+    private loadBestScoreLabel(op: Operation, exercise: ExerciseType, isTraining: boolean): string {
+        if (typeof window === 'undefined' || !window.localStorage) return 'Aucun record';
         const key = this.getBestScoreKey(op, exercise, isTraining);
-        const stored = Number(window.localStorage.getItem(key) || '0');
-        return stored > 0 ? this.formatBestScoreLabel(stored) : 'Aucun record';
+        const stored = this.parseStoredScore(window.localStorage.getItem(key));
+        return stored ? this.formatBestScoreLabel(stored.score, stored.total) : 'Aucun record';
     }
 
-    private getBestScoreKey(
-        op: Operation,
-        exercise: ExerciseType,
-        isTraining: boolean
-    ): string {
+    private getBestScoreKey(op: Operation, exercise: ExerciseType, isTraining: boolean): string {
         const base = `quiz-math-best:${exercise}:${op}:${isTraining ? 'training' : 'normal'}`;
         const table = this.table();
-        if (isTraining && table !== null) {
-            return `${base}:t${table}`;
-        }
+        if (isTraining && table !== null) return `${base}:t${table}`;
         return base;
     }
 
-    private formatBestScoreLabel(value: number): string {
-        return this.exerciseType() === 'chrono'
-            ? `${value} pts`
-            : `${value}/${QuizViewModel.NUMBER_OF_QUESTIONS}`;
+    /** Parses "score/total" (new format) or a plain number (legacy format). */
+    private parseStoredScore(raw: string | null): { score: number; total: number } | null {
+        if (!raw) return null;
+        if (raw.includes('/')) {
+            const [s, t] = raw.split('/').map(Number);
+            return isNaN(s) || isNaN(t) || t === 0 ? null : { score: s, total: t };
+        }
+        const legacy = Number(raw);
+        return isNaN(legacy) || legacy === 0
+            ? null
+            : { score: legacy, total: QuizViewModel.NUMBER_OF_QUESTIONS };
+    }
+
+    private formatBestScoreLabel(score: number, total: number): string {
+        return this.exerciseType() === 'chrono' ? `${score} pts` : `${score}/${total}`;
+    }
+
+    private getOperationLabel(op: Operation): string {
+        if (op === 'soustraction') return 'Soustraction';
+        if (op === 'multiplication') return 'Multiplication';
+        if (op === 'general') return 'Mix';
+        return 'Addition';
     }
 }

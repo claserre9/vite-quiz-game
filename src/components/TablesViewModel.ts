@@ -15,8 +15,11 @@ export class TablesViewModel extends BaseViewModel {
     private getBestScore(op: TableOp, table: number): string {
         if (typeof window === 'undefined' || !window.localStorage) return '';
         const key = `quiz-math-best:classic:${op}:training:t${table}`;
-        const stored = Number(window.localStorage.getItem(key) || '0');
-        return stored > 0 ? `Record : ${stored}/20` : '';
+        const raw = window.localStorage.getItem(key);
+        if (!raw) return '';
+        // New format: "score/total" — legacy format: plain number (assume /20)
+        const label = raw.includes('/') ? raw : `${raw}/20`;
+        return `Record : ${label}`;
     }
 
     private buildTableCards(op: TableOp): string {

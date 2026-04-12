@@ -1,0 +1,315 @@
+import { observable } from 'knockout';
+
+export type Operation = 'addition' | 'soustraction' | 'multiplication' | 'general';
+export type ExerciseType =
+    | 'classic'
+    | 'missing-number'
+    | 'true-false'
+    | 'comparison'
+    | 'chrono'
+    | 'sequence';
+
+export interface Answer {
+    answer: string;
+    correct: boolean;
+}
+
+export interface Question {
+    question: string;
+    answers: Answer[];
+    selectedAnswer: KnockoutObservable<Answer | null>;
+}
+
+export interface GenerateOptions {
+    /** Number of questions to generate (default: 20) */
+    count?: number;
+    /** Pin all questions to a specific table (e.g. the "7" table) */
+    table?: number | null;
+    /** Cap the second operand, e.g. maxFactor=10 keeps questions within 1–10 */
+    maxFactor?: number | null;
+}
+
+// ---------------------------------------------------------------------------
+// Public entry point
+// ---------------------------------------------------------------------------
+
+export function generateQuestions(
+    op: Operation,
+    exercise: ExerciseType,
+    options: GenerateOptions = {}
+): Question[] {
+    const count = options.count ?? 20;
+
+    switch (exercise) {
+        case 'classic':
+            return shuffleArray(generateClassicQuestions(op, options)).slice(0, count);
+        case 'missing-number':
+            return generateMissingNumberQuestions(op, count);
+        case 'true-false':
+            return generateTrueFalseQuestions(op, count);
+        case 'comparison':
+            return generateComparisonQuestions(count);
+        case 'chrono':
+            return generateChronoQuestions(op, count);
+        case 'sequence':
+            return generateSequenceQuestions(count);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Classic (table drill)
+// ---------------------------------------------------------------------------
+
+function generateClassicQuestions(op: Operation, options: GenerateOptions): Question[] {
+    const safeOp = op === 'general' ? 'addition' : op;
+    const t = options.table ?? randomInt(2, 12);
+    const max = options.maxFactor ?? (safeOp === 'multiplication' ? 12 : 20);
+    const qs: Question[] = [];
+
+    if (safeOp === 'multiplication') {
+        for (let n = 1; n <= max; n++)
+            qs.push(makeChoiceQuestion(`${t} × ${n} = ?`, t * n));
+    } else if (safeOp === 'addition') {
+        for (let n = 1; n <= max; n++)
+            qs.push(makeChoiceQuestion(`${t} + ${n} = ?`, t + n));
+    } else {
+        for (let n = 1; n <= max; n++) {
+            const a = t + n;
+            qs.push(makeChoiceQuestion(`${a} − ${t} = ?`, a - t));
+        }
+    }
+
+    return qs;
+}
+
+// ---------------------------------------------------------------------------
+// Missing number
+// ---------------------------------------------------------------------------
+
+function generateMissingNumberQuestions(op: Operation, count: number): Question[] {
+    const safeOp = op === 'general' ? 'addition' : op;
+    const questions: Question[] = [];
+
+    for (let i = 0; i < count; i++) {
+        const a = safeOp === 'multiplication' ? randomInt(2, 12) : randomInt(2, 20);
+        const b = safeOp === 'multiplication' ? randomInt(2, 12) : randomInt(2, 20);
+
+        if (safeOp === 'addition') {
+            const total = a + b;
+            const missingFirst = Math.random() < 0.5;
+            questions.push(makeChoiceQuestion(
+                missingFirst ? `❓ + ${b} = ${total}` : `${a} + ❓ = ${total}`,
+                missingFirst ? a : b
+            ));
+        } else if (safeOp === 'soustraction') {
+            const total = a + b;
+            const missingFirst = Math.random() < 0.5;
+            questions.push(makeChoiceQuestion(
+                missingFirst ? `❓ − ${a} = ${b}` : `${total} − ❓ = ${b}`,
+                missingFirst ? total : a
+            ));
+        } else {
+            const total = a * b;
+            const missingFirst = Math.random() < 0.5;
+            questions.push(makeChoiceQuestion(
+                missingFirst ? `❓ × ${b} = ${total}` : `${a} × ❓ = ${total}`,
+                missingFirst ? a : b
+            ));
+        }
+    }
+
+    return questions;
+}
+
+// ---------------------------------------------------------------------------
+// True / false
+// ---------------------------------------------------------------------------
+
+function generateTrueFalseQuestions(op: Operation, count: number): Question[] {
+    const safeOp = op === 'general' ? 'addition' : op;
+    const questions: Question[] = [];
+
+    for (let i = 0; i < count; i++) {
+        const a = safeOp === 'multiplication' ? randomInt(2, 12) : randomInt(5, 30);
+        const b =
+            safeOp === 'soustraction'
+                ? randomInt(1, a)
+                : safeOp === 'multiplication'
+                  ? randomInt(2, 12)
+                  : randomInt(5, 30);
+        const correctResult = calculate(a, b, safeOp);
+        const shouldBeTrue = Math.random() < 0.5;
+        const shownResult = shouldBeTrue
+            ? correctResult
+            : correctResult + randomNonZeroDelta(1, 4);
+
+        questions.push({
+            question: `${renderExpression(a, b, safeOp)} = ${shownResult}`,
+            answers: shuffleArray([
+                { answer: '✅ Vrai', correct: shownResult === correctResult },
+                { answer: '❌ Faux', correct: shownResult !== correctResult },
+            ]),
+            selectedAnswer: observable<Answer | null>(null),
+        });
+    }
+
+    return questions;
+}
+
+// ---------------------------------------------------------------------------
+// Comparison
+// ---------------------------------------------------------------------------
+
+function generateComparisonQuestions(count: number): Question[] {
+    const questions: Question[] = [];
+
+    for (let i = 0; i < count; i++) {
+        const left = randomInt(10, 199);
+        const right = Math.random() < 0.2 ? left : randomInt(10, 199);
+        let correct = '⬅️ Gauche';
+        if (right > left) correct = '➡️ Droite';
+        if (left === right) correct = '🤝 Égal';
+
+        questions.push({
+            question: `Quel nombre est le plus grand ? ${left}   vs   ${right}`,
+            answers: shuffleArray([
+                { answer: '⬅️ Gauche', correct: correct === '⬅️ Gauche' },
+                { answer: '➡️ Droite', correct: correct === '➡️ Droite' },
+                { answer: '🤝 Égal', correct: correct === '🤝 Égal' },
+            ]),
+            selectedAnswer: observable<Answer | null>(null),
+        });
+    }
+
+    return questions;
+}
+
+// ---------------------------------------------------------------------------
+// Chrono
+// ---------------------------------------------------------------------------
+
+function generateChronoQuestions(op: Operation, count: number): Question[] {
+    const questions: Question[] = [];
+
+    for (let i = 0; i < count; i++) {
+        const currentOp: Exclude<Operation, 'general'> =
+            op === 'general' ? randomOperation() : op;
+        const a = currentOp === 'multiplication' ? randomInt(2, 12) : randomInt(3, 20);
+        const b =
+            currentOp === 'soustraction'
+                ? randomInt(1, a)
+                : currentOp === 'multiplication'
+                  ? randomInt(2, 12)
+                  : randomInt(3, 20);
+        questions.push(
+            makeChoiceQuestion(renderOperation(a, b, currentOp), calculate(a, b, currentOp))
+        );
+    }
+
+    return questions;
+}
+
+// ---------------------------------------------------------------------------
+// Sequence
+// ---------------------------------------------------------------------------
+
+function generateSequenceQuestions(count: number): Question[] {
+    const questions: Question[] = [];
+
+    for (let i = 0; i < count; i++) {
+        const kind = randomInt(0, 2);
+        const start = randomInt(2, 18);
+        const step = randomInt(2, 6);
+
+        if (kind === 0) {
+            const seq = [start, start + step, start + step * 2, start + step * 3];
+            questions.push(
+                makeChoiceQuestion(`Complète la suite : ${seq[0]}, ${seq[1]}, ${seq[2]}, ?`, seq[3])
+            );
+        } else if (kind === 1) {
+            const ratio = randomInt(2, 4);
+            const seq = [start, start * ratio, start * ratio ** 2, start * ratio ** 3];
+            questions.push(
+                makeChoiceQuestion(`Complète la suite : ${seq[0]}, ${seq[1]}, ${seq[2]}, ?`, seq[3])
+            );
+        } else {
+            const seq = [start, start + 2, start + 6, start + 12];
+            questions.push(
+                makeChoiceQuestion(
+                    `Trouve le prochain nombre : ${seq[0]}, ${seq[1]}, ${seq[2]}, ${seq[3]}, ?`,
+                    start + 20
+                )
+            );
+        }
+    }
+
+    return questions;
+}
+
+// ---------------------------------------------------------------------------
+// Shared helpers
+// ---------------------------------------------------------------------------
+
+function makeChoiceQuestion(question: string, correctAnswer: number): Question {
+    return {
+        question,
+        answers: shuffleArray([
+            { answer: `🎈 ${correctAnswer}`, correct: true },
+            ...buildDistractors(correctAnswer).map((n) => ({ answer: `🎈 ${n}`, correct: false })),
+        ]),
+        selectedAnswer: observable<Answer | null>(null),
+    };
+}
+
+function buildDistractors(correct: number): number[] {
+    const set = new Set<number>();
+    const range = Math.max(2, Math.floor(Math.abs(correct) * 0.25) + 2);
+    while (set.size < 3) {
+        const delta = Math.floor(Math.random() * range) + 1;
+        const sign = Math.random() < 0.5 ? -1 : 1;
+        const candidate = correct + sign * delta;
+        if (candidate !== correct && candidate >= -100 && candidate <= 1000) {
+            set.add(candidate);
+        }
+    }
+    return Array.from(set);
+}
+
+function calculate(a: number, b: number, op: Exclude<Operation, 'general'>): number {
+    if (op === 'addition') return a + b;
+    if (op === 'soustraction') return a - b;
+    return a * b;
+}
+
+function renderOperation(a: number, b: number, op: Exclude<Operation, 'general'>): string {
+    return `${renderExpression(a, b, op)} = ?`;
+}
+
+function renderExpression(a: number, b: number, op: Exclude<Operation, 'general'>): string {
+    if (op === 'addition') return `${a} + ${b}`;
+    if (op === 'soustraction') return `${a} − ${b}`;
+    return `${a} × ${b}`;
+}
+
+export function shuffleArray<T>(array: T[]): T[] {
+    const copy = array.slice();
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+}
+
+function randomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomNonZeroDelta(min: number, max: number): number {
+    const delta = randomInt(min, max);
+    return Math.random() < 0.5 ? -delta : delta;
+}
+
+function randomOperation(): Exclude<Operation, 'general'> {
+    const ops: Exclude<Operation, 'general'>[] = ['addition', 'soustraction', 'multiplication'];
+    return ops[randomInt(0, ops.length - 1)];
+}
