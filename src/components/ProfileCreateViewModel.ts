@@ -1,19 +1,24 @@
 import { BaseViewModel } from '@core/BaseViewModel';
 import { url } from '@core/url';
 import { observable } from 'knockout';
-import { ProfileStore, AVATARS, COLORS, type ColorOption } from '@store/ProfileStore';
+import {
+    ProfileStore,
+    AVATARS,
+    COLORS,
+    type ColorOption,
+} from '@store/ProfileStore';
 
 export class ProfileCreateViewModel extends BaseViewModel {
-    name    = observable('');
-    avatar  = observable(AVATARS[0]);
-    color   = observable(COLORS[0].id);
-    usePin  = observable(false);
-    pin     = observable('');
+    name = observable('');
+    avatar = observable(AVATARS[0]);
+    color = observable(COLORS[0].id);
+    usePin = observable(false);
+    pin = observable('');
     nameError = observable('');
-    pinError  = observable('');
+    pinError = observable('');
 
     readonly avatars = AVATARS;
-    readonly colors  = COLORS;
+    readonly colors = COLORS;
 
     constructor(context: PageJS.Context | undefined) {
         super(context);
@@ -40,29 +45,25 @@ export class ProfileCreateViewModel extends BaseViewModel {
                 <!-- Avatar picker -->
                 <div class="mb-4">
                     <label class="form-label fw-bold">Avatar</label>
-                    <div class="d-flex flex-wrap gap-2 justify-content-center">
-                        <!-- ko foreach: avatars -->
+                    <div class="d-flex flex-wrap gap-2 justify-content-center" data-bind="foreach: avatars">
                         <div class="qm-avatar-option"
                              data-bind="text: $data,
                                         click: $root.selectAvatar,
                                         css: { 'qm-avatar-option--selected': $root.avatar() === $data }">
                         </div>
-                        <!-- /ko -->
                     </div>
                 </div>
 
                 <!-- Color picker -->
                 <div class="mb-4">
                     <label class="form-label fw-bold">Couleur</label>
-                    <div class="d-flex gap-3 justify-content-center">
-                        <!-- ko foreach: colors -->
+                    <div class="d-flex gap-3 justify-content-center" data-bind="foreach: colors">
                         <div class="qm-color-option"
                              data-bind="style: { background: gradient },
                                         click: $root.selectColor,
                                         css: { 'qm-color-option--selected': $root.color() === id },
                                         attr: { title: label }">
                         </div>
-                        <!-- /ko -->
                     </div>
                 </div>
 
@@ -105,7 +106,8 @@ export class ProfileCreateViewModel extends BaseViewModel {
         </div>`;
     }
 
-    gradient = (colorId: string): string => ProfileStore.getColorGradient(colorId);
+    gradient = (colorId: string): string =>
+        ProfileStore.getColorGradient(colorId);
 
     selectAvatar = (avatar: string) => this.avatar(avatar);
 
@@ -134,6 +136,7 @@ export class ProfileCreateViewModel extends BaseViewModel {
         ProfileStore.setActiveProfile(profile.id);
 
         const p = window.page;
-        if (p?.show) p.show('/'); else window.location.href = '/';
+        if (p?.show) p.show('/');
+        else window.location.href = '/';
     };
 }

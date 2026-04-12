@@ -27,8 +27,16 @@ body {
     color: var(--qm-ink);
     font-family: 'Nunito', sans-serif;
     background:
-        radial-gradient(circle at top left, rgba(255, 196, 71, 0.45), transparent 30%),
-        radial-gradient(circle at top right, rgba(76, 117, 255, 0.22), transparent 28%),
+        radial-gradient(
+            circle at top left,
+            rgba(255, 196, 71, 0.45),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at top right,
+            rgba(76, 117, 255, 0.22),
+            transparent 28%
+        ),
         linear-gradient(180deg, var(--qm-bg-top) 0%, var(--qm-bg-bottom) 100%);
     background-attachment: fixed;
 }
@@ -197,7 +205,11 @@ a {
 .qm-btn,
 .qm-btn-home {
     color: #fff;
-    background: linear-gradient(135deg, var(--qm-primary), var(--qm-primary-dark));
+    background: linear-gradient(
+        135deg,
+        var(--qm-primary),
+        var(--qm-primary-dark)
+    );
     box-shadow: 0 16px 34px rgba(255, 122, 89, 0.3);
 }
 
@@ -268,13 +280,15 @@ a {
 
 .qm-table-card {
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
     min-height: 110px;
 }
 
 .qm-table-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .qm-table-number {
@@ -390,7 +404,11 @@ a {
 .qm-question-card {
     padding: 1.5rem;
     border-radius: 24px;
-    background: linear-gradient(180deg, rgba(255, 248, 222, 0.95), rgba(255, 255, 255, 0.95));
+    background: linear-gradient(
+        180deg,
+        rgba(255, 248, 222, 0.95),
+        rgba(255, 255, 255, 0.95)
+    );
 }
 
 .qm-question-text {
@@ -528,13 +546,13 @@ a {
     text-decoration: none;
     padding: 0.25rem 0.6rem;
     border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     transition: all 0.15s ease;
 }
 
 .qm-profile-change-btn:hover {
     color: #fff;
-    border-color: rgba(255,255,255,0.3);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* ── Profile badge (quiz / training pages) ───────────── */
@@ -545,7 +563,7 @@ a {
     gap: 0.4rem;
     padding: 0.35rem 0.75rem;
     border-radius: 999px;
-    background: rgba(255,255,255,0.07);
+    background: rgba(255, 255, 255, 0.07);
     font-size: 0.85rem;
     font-weight: 600;
 }
@@ -568,11 +586,14 @@ a {
     gap: 0.4rem;
     padding: 1.2rem 1rem 0.9rem;
     border-radius: 20px;
-    border: 2px solid rgba(255,255,255,0.08);
-    background: rgba(255,255,255,0.04);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
     cursor: pointer;
     min-width: 110px;
-    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    transition:
+        transform 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
 }
 
 .qm-profile-card:hover {
@@ -633,30 +654,36 @@ a {
     padding: 0;
 }
 
-.qm-profile-delete-btn:hover { background: #ff4757; }
+.qm-profile-delete-btn:hover {
+    background: #ff4757;
+}
 
 /* ── PIN overlay ─────────────────────────────────────── */
 
 .qm-pin-overlay {
+    display: none;
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.65);
-    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
     padding: 1rem;
 }
 
+.qm-pin-overlay--visible {
+    display: flex;
+}
+
 .qm-pin-dialog {
     background: var(--qm-card-bg);
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 24px;
     padding: 2rem 2.5rem;
     text-align: center;
     max-width: 320px;
     width: 100%;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 .qm-pin-avatar {
@@ -700,12 +727,17 @@ a {
     font-size: 1.5rem;
     cursor: pointer;
     border: 2px solid transparent;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     transition: all 0.15s ease;
 }
 
-.qm-avatar-option:hover { border-color: rgba(255,255,255,0.25); }
-.qm-avatar-option--selected { border-color: #4c75ff; background: rgba(76,117,255,0.15); }
+.qm-avatar-option:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+}
+.qm-avatar-option--selected {
+    border-color: #4c75ff;
+    background: rgba(76, 117, 255, 0.15);
+}
 
 .qm-color-option {
     width: 2.4rem;
@@ -714,11 +746,16 @@ a {
     cursor: pointer;
     border: 3px solid transparent;
     transition: all 0.15s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.qm-color-option:hover { transform: scale(1.15); }
-.qm-color-option--selected { border-color: #fff; transform: scale(1.15); }
+.qm-color-option:hover {
+    transform: scale(1.15);
+}
+.qm-color-option--selected {
+    border-color: #fff;
+    transform: scale(1.15);
+}
 
 /* ── Free input ─────────────────────────────────────── */
 
@@ -761,8 +798,12 @@ a {
     font-weight: 700;
 }
 
-.qm-feedback-correct { color: #19c59a; }
-.qm-feedback-incorrect { color: #ff6b6b; }
+.qm-feedback-correct {
+    color: #19c59a;
+}
+.qm-feedback-incorrect {
+    color: #ff6b6b;
+}
 
 /* ── Table-gaps grid ─────────────────────────────────── */
 

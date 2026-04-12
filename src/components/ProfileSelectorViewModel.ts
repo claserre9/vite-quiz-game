@@ -43,10 +43,10 @@ export class ProfileSelectorViewModel extends BaseViewModel {
                              data-bind="text: avatar, style: { background: $root.gradient(color) }"></div>
                         <div class="qm-profile-name" data-bind="text: name"></div>
                         <div class="qm-profile-pin-badge" data-bind="visible: pin !== null">🔒</div>
-                        <!-- ko if: $root.manageMode() -->
                         <button class="qm-profile-delete-btn"
-                                data-bind="click: $root.deleteProfile, clickBubble: false">✕</button>
-                        <!-- /ko -->
+                                data-bind="visible: $root.manageMode(),
+                                           click: $root.deleteProfile,
+                                           clickBubble: false">✕</button>
                     </div>
                 </div>
 
@@ -60,15 +60,15 @@ export class ProfileSelectorViewModel extends BaseViewModel {
                 </div>
             </div>
 
-            <!-- PIN overlay -->
-            <div data-bind="if: selectedProfile() !== null" class="qm-pin-overlay">
+            <!-- PIN overlay — hidden by default via CSS; shown with --visible class -->
+            <div class="qm-pin-overlay"
+                 data-bind="css: { 'qm-pin-overlay--visible': selectedProfile() !== null }">
                 <div class="qm-pin-dialog">
-                    <div data-bind="if: selectedProfile()">
-                        <div class="qm-pin-avatar mx-auto"
-                             data-bind="text: selectedProfile().avatar,
-                                        style: { background: $root.gradient(selectedProfile().color) }"></div>
-                        <h3 class="mt-3 mb-0" data-bind="text: selectedProfile().name"></h3>
-                    </div>
+                    <div class="qm-pin-avatar mx-auto"
+                         data-bind="text: selectedProfile() ? selectedProfile().avatar : '',
+                                    style: { background: selectedProfile() ? $root.gradient(selectedProfile().color) : '' }"></div>
+                    <h3 class="mt-3 mb-0"
+                        data-bind="text: selectedProfile() ? selectedProfile().name : ''"></h3>
                     <p class="qm-muted mb-3 mt-1">Saisis ton PIN</p>
                     <input type="password" inputmode="numeric" pattern="[0-9]*"
                            maxlength="4" class="qm-pin-input"
@@ -88,7 +88,8 @@ export class ProfileSelectorViewModel extends BaseViewModel {
         </div>`;
     }
 
-    gradient = (colorId: string): string => ProfileStore.getColorGradient(colorId);
+    gradient = (colorId: string): string =>
+        ProfileStore.getColorGradient(colorId);
 
     selectProfile = (profile: Profile) => {
         if (profile.pin) {
@@ -112,7 +113,10 @@ export class ProfileSelectorViewModel extends BaseViewModel {
     };
 
     onPinKeyDown = (_: unknown, event: KeyboardEvent): boolean => {
-        if (event.key === 'Enter') { this.submitPin(); return false; }
+        if (event.key === 'Enter') {
+            this.submitPin();
+            return false;
+        }
         return true;
     };
 
@@ -135,6 +139,7 @@ export class ProfileSelectorViewModel extends BaseViewModel {
     private activate(id: string) {
         ProfileStore.setActiveProfile(id);
         const p = window.page;
-        if (p?.show) p.show('/'); else window.location.href = '/';
+        if (p?.show) p.show('/');
+        else window.location.href = '/';
     }
 }
