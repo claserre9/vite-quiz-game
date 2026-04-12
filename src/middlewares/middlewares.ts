@@ -1,5 +1,6 @@
 import page from 'page';
 import { appStore } from '@store/AppStore';
+import { ProfileStore } from '@store/ProfileStore';
 
 export function logPathMiddleware(
     context: { path: string },
@@ -19,6 +20,14 @@ export function authGuard(_context: PageJS.Context, next: () => void): void {
     } else {
         console.warn('Authentication required. Redirecting to login page.');
         page.redirect('/login');
+    }
+}
+
+export function profileGuard(_context: PageJS.Context, next: () => void): void {
+    if (ProfileStore.getActiveProfile()) {
+        next();
+    } else {
+        page.redirect('/profils');
     }
 }
 

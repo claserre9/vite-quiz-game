@@ -5,6 +5,7 @@ import {
     logPathMiddleware,
     authGuard,
     roleGuard,
+    profileGuard,
 } from '@middlewares/middlewares';
 import { AboutViewModel } from '@components/AboutViewModel';
 import { DashboardViewModel } from '@components/DashboardViewModel';
@@ -19,6 +20,8 @@ import { SimpleFormViewModel } from '@components/SimpleFormViewModel';
 import { QuizViewModel } from '@components/QuizViewModel';
 import { TrainingViewModel } from '@components/TrainingViewModel';
 import { TablesViewModel } from '@components/TablesViewModel';
+import { ProfileSelectorViewModel } from '@components/ProfileSelectorViewModel';
+import { ProfileCreateViewModel } from '@components/ProfileCreateViewModel';
 
 /**
  * Route configuration interface
@@ -48,7 +51,16 @@ const dashboardLayoutMiddleware = (
  */
 export const routes: RouteConfig[] = [
     {
+        path: '/profils',
+        handler: (context) => renderView(ProfileSelectorViewModel, context),
+    },
+    {
+        path: '/profils/nouveau',
+        handler: (context) => renderView(ProfileCreateViewModel, context),
+    },
+    {
         path: '/',
+        middleware: [profileGuard],
         handler: (context) => renderView(AppViewModel, context),
     },
     {
@@ -61,14 +73,17 @@ export const routes: RouteConfig[] = [
     },
     {
         path: '/entrainement',
+        middleware: [profileGuard],
         handler: (context) => renderView(TrainingViewModel, context),
     },
     {
         path: '/tables',
+        middleware: [profileGuard],
         handler: (context) => renderView(TablesViewModel, context),
     },
     {
         path: '/quiz/:operation',
+        middleware: [profileGuard],
         handler: (context) => renderView(QuizViewModel, context),
     },
     {

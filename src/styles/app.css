@@ -488,6 +488,238 @@ a {
     border-radius: 18px;
 }
 
+/* ── Profile bar (home) ─────────────────────────────── */
+
+.qm-profile-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 0.6rem 1.2rem;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.qm-profile-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.qm-profile-chip-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    font-size: 1rem;
+}
+
+.qm-profile-chip-name {
+    font-weight: 700;
+}
+
+.qm-profile-change-btn {
+    font-size: 0.8rem;
+    color: var(--qm-muted);
+    text-decoration: none;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    transition: all 0.15s ease;
+}
+
+.qm-profile-change-btn:hover {
+    color: #fff;
+    border-color: rgba(255,255,255,0.3);
+}
+
+/* ── Profile badge (quiz / training pages) ───────────── */
+
+.qm-profile-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.07);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* ── Profile selector page ───────────────────────────── */
+
+.qm-profiles-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.qm-profile-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 1.2rem 1rem 0.9rem;
+    border-radius: 20px;
+    border: 2px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    min-width: 110px;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.qm-profile-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(76, 117, 255, 0.5);
+    box-shadow: 0 8px 24px rgba(76, 117, 255, 0.2);
+}
+
+.qm-profile-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    font-size: 1.8rem;
+    line-height: 1;
+}
+
+.qm-profile-avatar--xl {
+    width: 5rem;
+    height: 5rem;
+    font-size: 2.6rem;
+}
+
+.qm-profile-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-align: center;
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.qm-profile-pin-badge {
+    font-size: 0.7rem;
+    opacity: 0.65;
+}
+
+.qm-profile-delete-btn {
+    position: absolute;
+    top: 0.35rem;
+    right: 0.35rem;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 107, 107, 0.75);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.qm-profile-delete-btn:hover { background: #ff4757; }
+
+/* ── PIN overlay ─────────────────────────────────────── */
+
+.qm-pin-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.qm-pin-dialog {
+    background: var(--qm-card-bg);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 2rem 2.5rem;
+    text-align: center;
+    max-width: 320px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.qm-pin-avatar {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qm-pin-input {
+    width: 160px;
+    padding: 0.7rem 1rem;
+    font-size: 1.6rem;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.4em;
+    border: 2px solid rgba(76, 117, 255, 0.3);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    color: inherit;
+    outline: none;
+}
+
+.qm-pin-input:focus {
+    border-color: #4c75ff;
+    box-shadow: 0 0 0 3px rgba(76, 117, 255, 0.25);
+}
+
+/* ── Profile create page ─────────────────────────────── */
+
+.qm-avatar-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 12px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background: rgba(255,255,255,0.05);
+    transition: all 0.15s ease;
+}
+
+.qm-avatar-option:hover { border-color: rgba(255,255,255,0.25); }
+.qm-avatar-option--selected { border-color: #4c75ff; background: rgba(76,117,255,0.15); }
+
+.qm-color-option {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.qm-color-option:hover { transform: scale(1.15); }
+.qm-color-option--selected { border-color: #fff; transform: scale(1.15); }
+
 /* ── Free input ─────────────────────────────────────── */
 
 .qm-free-input-wrap {

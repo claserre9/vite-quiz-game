@@ -3,7 +3,7 @@ import { registerRoutes } from '@routes/routes';
 import './styles/app.css';
 
 // Expose page.js for programmatic navigation in ViewModels (e.g., TrainingViewModel)
-;(window as any).page = page;
+;window.page = page;
 
 // Configure page.js base to support deployment under a subpath (e.g., GitHub Pages)
 // Vite injects import.meta.env.BASE_URL at build time; it can be a path or an absolute URL

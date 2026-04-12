@@ -1,6 +1,7 @@
 import { BaseViewModel } from '@core/BaseViewModel';
 import { url } from '@core/url';
 import { observable } from 'knockout';
+import { ProfileStore } from '@store/ProfileStore';
 
 type TableOp = 'addition' | 'multiplication';
 
@@ -14,10 +15,9 @@ export class TablesViewModel extends BaseViewModel {
 
     private getBestScore(op: TableOp, table: number): string {
         if (typeof window === 'undefined' || !window.localStorage) return '';
-        const key = `quiz-math-best:classic:${op}:training:t${table}`;
+        const key = ProfileStore.scoreKey(`quiz-math-best:classic:${op}:training:t${table}`);
         const raw = window.localStorage.getItem(key);
         if (!raw) return '';
-        // New format: "score/total" — legacy format: plain number (assume /20)
         const label = raw.includes('/') ? raw : `${raw}/20`;
         return `Record : ${label}`;
     }

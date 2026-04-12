@@ -90,8 +90,8 @@ export class TrainingViewModel extends BaseViewModel {
       exercise,
     });
     const path = `/quiz/${op}?${qs.toString()}`;
-    if ((window as any).page && typeof (window as any).page.show === 'function') {
-      (window as any).page.show(path);
+    if (window.page && typeof window.page.show === 'function') {
+      window.page.show(path);
     } else {
       window.location.href = path;
     }

@@ -9,6 +9,7 @@ import {
     type Answer,
     type Question,
 } from '../core/QuestionGenerator';
+import { ProfileStore } from '../store/ProfileStore';
 import incorrectSoundObject from '../medias/sounds/incorrect.mp3';
 import correctSoundObject from '../medias/sounds/correct.mp3';
 
@@ -652,12 +653,12 @@ export class QuizViewModel extends BaseViewModel {
     private getBestScoreKey(op: Operation, exercise: ExerciseType, isTraining: boolean): string {
         const base = `quiz-math-best:${exercise}:${op}:${isTraining ? 'training' : 'normal'}`;
         const table = this.table();
-        if (isTraining && table !== null) return `${base}:t${table}`;
-        return base;
+        const suffix = isTraining && table !== null ? `:t${table}` : '';
+        return ProfileStore.scoreKey(`${base}${suffix}`);
     }
 
     private getSprintTimeKey(op: Operation, table: number): string {
-        return `quiz-math-sprint-time:${op}:t${table}`;
+        return ProfileStore.scoreKey(`quiz-math-sprint-time:${op}:t${table}`);
     }
 
     private parseStoredScore(raw: string | null): { score: number; total: number } | null {

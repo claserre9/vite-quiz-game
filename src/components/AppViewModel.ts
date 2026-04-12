@@ -1,9 +1,20 @@
 import { BaseViewModel } from '@core/BaseViewModel';
 import { url } from '@core/url';
+import { ProfileStore } from '@store/ProfileStore';
 
 export class AppViewModel extends BaseViewModel {
     constructor(context: PageJS.Context | undefined) {
         super(context);
+        const profile = ProfileStore.getActiveProfile();
+        const profileBar = profile ? `
+            <div class="qm-profile-bar">
+                <div class="qm-profile-chip">
+                    <span class="qm-profile-chip-avatar"
+                          style="background: ${ProfileStore.getColorGradient(profile.color)}">${profile.avatar}</span>
+                    <span class="qm-profile-chip-name">${profile.name}</span>
+                </div>
+                <a href="${url('/profils')}" class="qm-profile-change-btn">Changer de profil</a>
+            </div>` : '';
         this.setTemplate(`
             <div class="qm-shell">
                 <a href="${url('/about')}" style="display:none"></a>
@@ -24,6 +35,7 @@ export class AppViewModel extends BaseViewModel {
                     </div>
                 </nav>
 
+                ${profileBar}
                 <main class="container qm-hero">
                     <section class="qm-hero-card text-center">
                         <span class="qm-pill">✨ Révise en jouant</span>
