@@ -7,7 +7,12 @@ export type ExerciseType =
     | 'true-false'
     | 'comparison'
     | 'chrono'
-    | 'sequence';
+    | 'sequence'
+    | 'inverse'
+    | 'duel'
+    | 'free-input'
+    | 'sprint'
+    | 'table-gaps';
 
 export interface Answer {
     answer: string;
@@ -18,14 +23,13 @@ export interface Question {
     question: string;
     answers: Answer[];
     selectedAnswer: KnockoutObservable<Answer | null>;
+    /** Expected string value for free-input exercises */
+    correctValue?: string;
 }
 
 export interface GenerateOptions {
-    /** Number of questions to generate (default: 20) */
     count?: number;
-    /** Pin all questions to a specific table (e.g. the "7" table) */
     table?: number | null;
-    /** Cap the second operand, e.g. maxFactor=10 keeps questions within 1–10 */
     maxFactor?: number | null;
 }
 
@@ -53,6 +57,16 @@ export function generateQuestions(
             return generateChronoQuestions(op, count);
         case 'sequence':
             return generateSequenceQuestions(count);
+        case 'inverse':
+            return generateInverseQuestions(op, count);
+        case 'duel':
+            return generateDuelQuestions(op, count);
+        case 'free-input':
+            return generateFreeInputQuestions(op, options);
+        case 'sprint':
+            return generateSprintQuestions(op, options);
+        case 'table-gaps':
+            return generateTableGapsQuestions(op, options);
     }
 }
 
@@ -247,6 +261,148 @@ function generateSequenceQuestions(count: number): Question[] {
 }
 
 // ---------------------------------------------------------------------------
+// Inverse — given a result, find the operation that produced it
+// ---------------------------------------------------------------------------
+
+function generateInverseQuestions(op: Operation, count: number): Question[] {
+    const safeOp = op === 'general' ? randomOperation() : op;
+    const symbol = operationSymbol(safeOp);
+    const questions: Question[] = [];
+
+    for (let i = 0; i < count; i++) {
+        const a = safeOp === 'multiplication' ? randomInt(2, 10) : randomInt(1, 15);
+        const b = safeOp === 'multiplication' ? randomInt(2, 10) : randomInt(1, 15);
+        const result = calculate(a, b, safeOp);
+        const correctExpr = `${a} ${symbol} ${b}`;
+
+        const distractors: string[] = [];
+        const usedResults = new Set([result]);
+        let attempts = 0;
+        while (distractors.length < 3 && attempts < 60) {
+            attempts++;
+            const da = safeOp === 'multiplication' ? randomInt(2, 10) : randomInt(1, 15);
+            const db = safeOp === 'multiplication' ? randomInt(2, 10) : randomInt(1, 15);
+            const dr = calculate(da, db, safeOp);
+            const dExpr = `${da} ${symbol} ${db}`;
+            if (!usedResults.has(dr) && dExpr !== correctExpr) {
+                distractors.push(dExpr);
+                usedResults.add(dr);
+            }
+        }
+
+        questions.push({
+            question: `${result} = ?`,
+            answers: shuffleArray([
+                { answer: correctExpr, correct: true },
+                ...distractors.map((d) => ({ answer: d, correct: false })),
+            ]),
+            selectedAnswer: observable<Answer | null>(null),
+        });
+    }
+
+    return questions;
+}
+
+// ---------------------------------------------------------------------------
+// Duel — two operations, click the one with the bigger result
+// ---------------------------------------------------------------------------
+
+function generateDuelQuestions(op: Operation, count: number): Question[] {
+    const questions: Question[] = [];
+
+    for (let i = 0; i < count; i++) {
+        const currentOp: Exclude<Operation, 'general'> =
+            op === 'general' ? randomOperation() : op;
+        const symbol = operationSymbol(currentOp);
+
+        const a1 = currentOp === 'multiplication' ? randomInt(2, 10) : randomInt(2, 20);
+        const b1 = currentOp === 'multiplication' ? randomInt(2, 10) : randomInt(2, 20);
+        const a2 = currentOp === 'multiplication' ? randomInt(2, 10) : randomInt(2, 20);
+        const b2 = currentOp === 'multiplication' ? randomInt(2, 10) : randomInt(2, 20);
+
+        const r1 = calculate(a1, b1, currentOp);
+        const r2 = calculate(a2, b2, currentOp);
+
+        const expr1 = `${a1} ${symbol} ${b1}`;
+        const expr2 = `${a2} ${symbol} ${b2}`;
+
+        // Avoid identical expressions
+        if (expr1 === expr2) { i--; continue; }
+
+        questions.push({
+            question: `Lequel donne le plus grand résultat ?\n${expr1}   vs   ${expr2}`,
+            answers: [
+                { answer: `⬅️  ${expr1}`, correct: r1 > r2 },
+                { answer: `➡️  ${expr2}`, correct: r2 > r1 },
+                { answer: '🤝 Égal', correct: r1 === r2 },
+            ],
+            selectedAnswer: observable<Answer | null>(null),
+        });
+    }
+
+    return questions;
+}
+
+// ---------------------------------------------------------------------------
+// Free input — type the answer instead of clicking a button
+// ---------------------------------------------------------------------------
+
+function generateFreeInputQuestions(op: Operation, options: GenerateOptions): Question[] {
+    const safeOp = op === 'general' ? 'addition' : op;
+    const t = options.table ?? randomInt(2, 12);
+    const max = options.maxFactor ?? (safeOp === 'multiplication' ? 12 : 20);
+    const count = options.count ?? 20;
+    const qs: Question[] = [];
+
+    for (let i = 0; i < count; i++) {
+        const n = randomInt(1, max);
+        if (safeOp === 'multiplication') {
+            qs.push(makeFreeInputQuestion(`${t} × ${n} = ?`, String(t * n)));
+        } else if (safeOp === 'addition') {
+            qs.push(makeFreeInputQuestion(`${t} + ${n} = ?`, String(t + n)));
+        } else {
+            const a = t + n;
+            qs.push(makeFreeInputQuestion(`${a} − ${t} = ?`, String(n)));
+        }
+    }
+
+    return qs;
+}
+
+// ---------------------------------------------------------------------------
+// Sprint — full table in order, free input, count-up timer
+// ---------------------------------------------------------------------------
+
+export function generateSprintQuestions(op: Operation, options: GenerateOptions): Question[] {
+    const safeOp = op === 'general' ? 'multiplication' : op;
+    const t = options.table ?? randomInt(2, 10);
+    const max = options.maxFactor ?? 10;
+    const qs: Question[] = [];
+
+    for (let n = 1; n <= max; n++) {
+        if (safeOp === 'multiplication') {
+            qs.push(makeFreeInputQuestion(`${t} × ${n} = ?`, String(t * n)));
+        } else if (safeOp === 'addition') {
+            qs.push(makeFreeInputQuestion(`${t} + ${n} = ?`, String(t + n)));
+        } else {
+            const a = t + n;
+            qs.push(makeFreeInputQuestion(`${a} − ${t} = ?`, String(n)));
+        }
+    }
+
+    return qs; // ordered, not shuffled
+}
+
+// ---------------------------------------------------------------------------
+// Table gaps — full table in order, free input, grid visualization
+// ---------------------------------------------------------------------------
+
+export function generateTableGapsQuestions(op: Operation, options: GenerateOptions): Question[] {
+    // Same generation as sprint — the difference is in the UI (grid display, no timer)
+    return generateSprintQuestions(op, options);
+}
+
+// ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
 
@@ -258,6 +414,15 @@ function makeChoiceQuestion(question: string, correctAnswer: number): Question {
             ...buildDistractors(correctAnswer).map((n) => ({ answer: `🎈 ${n}`, correct: false })),
         ]),
         selectedAnswer: observable<Answer | null>(null),
+    };
+}
+
+function makeFreeInputQuestion(question: string, correctValue: string): Question {
+    return {
+        question,
+        answers: [],
+        selectedAnswer: observable<Answer | null>(null),
+        correctValue,
     };
 }
 
@@ -286,9 +451,13 @@ function renderOperation(a: number, b: number, op: Exclude<Operation, 'general'>
 }
 
 function renderExpression(a: number, b: number, op: Exclude<Operation, 'general'>): string {
-    if (op === 'addition') return `${a} + ${b}`;
-    if (op === 'soustraction') return `${a} − ${b}`;
-    return `${a} × ${b}`;
+    return `${a} ${operationSymbol(op)} ${b}`;
+}
+
+function operationSymbol(op: Exclude<Operation, 'general'>): string {
+    if (op === 'addition') return '+';
+    if (op === 'soustraction') return '−';
+    return '×';
 }
 
 export function shuffleArray<T>(array: T[]): T[] {

@@ -35,11 +35,20 @@ export class TrainingViewModel extends BaseViewModel {
               <div class="col-12 col-md-6">
                 <label class="form-label fw-bold">Type d'exercice</label>
                 <select class="form-select qm-select" data-bind="value: exercise">
-                  <option value="classic">Quiz classique</option>
-                  <option value="missing-number">Nombre manquant</option>
-                  <option value="true-false">Vrai ou faux</option>
-                  <option value="comparison">Comparaison rapide</option>
-                  <option value="sequence">Suites logiques</option>
+                  <optgroup label="Choix multiple">
+                    <option value="classic">Quiz classique</option>
+                    <option value="missing-number">Nombre manquant</option>
+                    <option value="true-false">Vrai ou faux</option>
+                    <option value="comparison">Comparaison rapide</option>
+                    <option value="sequence">Suites logiques</option>
+                    <option value="inverse">Opération inverse</option>
+                    <option value="duel">Duel de calculs</option>
+                  </optgroup>
+                  <optgroup label="Saisie libre">
+                    <option value="free-input">Saisie libre</option>
+                    <option value="sprint">Sprint chronométré ⏱️</option>
+                    <option value="table-gaps">Table à compléter</option>
+                  </optgroup>
                 </select>
               </div>
               <div class="col-12 col-md-6">
