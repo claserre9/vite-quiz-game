@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cliffordlaserre.github.io/vite-quiz-game/sitemap.xml
