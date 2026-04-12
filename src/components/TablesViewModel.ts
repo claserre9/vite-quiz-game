@@ -23,7 +23,7 @@ export class TablesViewModel extends BaseViewModel {
         let cards = '';
         for (let t = 1; t <= 10; t++) {
             const symbol = op === 'addition' ? '+' : '×';
-            const qs = new URLSearchParams({ mode: 'training', table: String(t), exercise: 'classic' });
+            const qs = new URLSearchParams({ mode: 'training', table: String(t), exercise: 'classic', maxFactor: '10' });
             const href = url(`/quiz/${op}?${qs.toString()}`);
             const best = this.getBestScore(op, t);
             const bestHtml = best

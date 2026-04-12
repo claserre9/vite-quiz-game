@@ -56,6 +56,7 @@ export class QuizViewModel extends BaseViewModel {
     public static CHRONO_BATCH_SIZE = 25;
 
     public isLoading = observable(true);
+    public maxFactor = observable<number | null>(null);
     public errorMessage = observable(null as string | null);
     public questions = observableArray<Question>([]);
     public currentIndex = observable(0);
@@ -114,10 +115,14 @@ export class QuizViewModel extends BaseViewModel {
         const mode = params.get('mode');
         const tableParam = params.get('table');
         const exerciseParam = params.get('exercise');
+        const maxFactorParam = params.get('maxFactor');
 
         this.isTraining(mode === 'training');
         this.table(
             tableParam !== null && tableParam !== '' ? Number(tableParam) : null
+        );
+        this.maxFactor(
+            maxFactorParam !== null && maxFactorParam !== '' ? Number(maxFactorParam) : null
         );
         this.exerciseType(this.parseExercise(exerciseParam));
 
@@ -498,15 +503,16 @@ export class QuizViewModel extends BaseViewModel {
 
         const qs: Question[] = [];
         const t = table ?? this.randomInt(2, 12);
+        const max = this.maxFactor() ?? (safeOp === 'multiplication' ? 12 : 20);
 
         if (safeOp === 'multiplication') {
-            for (let n = 0; n <= 12; n++)
+            for (let n = 1; n <= max; n++)
                 qs.push(makeQuestion(`${t} × ${n} = ?`, t * n));
         } else if (safeOp === 'addition') {
-            for (let n = 0; n <= 20; n++)
+            for (let n = 1; n <= max; n++)
                 qs.push(makeQuestion(`${t} + ${n} = ?`, t + n));
         } else {
-            for (let n = 0; n <= 20; n++) {
+            for (let n = 1; n <= max; n++) {
                 const a = t + n;
                 qs.push(makeQuestion(`${a} − ${t} = ?`, a - t));
             }
