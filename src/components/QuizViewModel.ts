@@ -254,8 +254,10 @@ export class QuizViewModel extends BaseViewModel {
                                 <h2 class="qm-question-text text-center" data-bind="text: currentQuestion().question" style="white-space: pre-line"></h2>
 
                                 <!-- Multiple choice buttons -->
-                                <div class="qm-answer-grid" data-bind="if: !isFreeInput(), foreach: currentQuestion().answers">
-                                    <button class="btn qm-answer-btn" data-bind="text: answer, click: $root.selectAnswer, css: $parent.getAnswerClasses($parent.currentQuestion(), $data), disable: $parent.answerChosen() || $parent.quizFinished()"></button>
+                                <div data-bind="if: !isFreeInput()">
+                                    <div class="qm-answer-grid" data-bind="foreach: currentQuestion().answers">
+                                        <button class="btn qm-answer-btn" data-bind="text: answer, click: $root.selectAnswer, css: $parent.getAnswerClasses($parent.currentQuestion(), $data), disable: $parent.answerChosen() || $parent.quizFinished()"></button>
+                                    </div>
                                 </div>
 
                                 <!-- Free input -->
