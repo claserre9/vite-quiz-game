@@ -262,6 +262,47 @@ a {
     background: linear-gradient(90deg, #19c59a, #4c75ff);
 }
 
+.qm-feature-card[data-tone='tables']::before {
+    background: linear-gradient(90deg, #a78bfa, #60a5fa);
+}
+
+.qm-table-card {
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    min-height: 110px;
+}
+
+.qm-table-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.qm-table-number {
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(135deg, #ff7a59, #4c75ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.qm-feature-card[data-tone='addition'] .qm-table-number {
+    background: linear-gradient(135deg, #ff7a59, #ffb347);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.qm-feature-card[data-tone='multiplication'] .qm-table-number {
+    background: linear-gradient(135deg, #19c59a, #4c75ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.active-tab {
+    box-shadow: 0 0 0 3px rgba(76, 117, 255, 0.4) !important;
+}
+
 .qm-feature-icon {
     display: inline-grid;
     place-items: center;

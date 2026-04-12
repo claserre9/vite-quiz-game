@@ -845,7 +845,12 @@ export class QuizViewModel extends BaseViewModel {
         exercise: ExerciseType,
         isTraining: boolean
     ): string {
-        return `quiz-math-best:${exercise}:${op}:${isTraining ? 'training' : 'normal'}`;
+        const base = `quiz-math-best:${exercise}:${op}:${isTraining ? 'training' : 'normal'}`;
+        const table = this.table();
+        if (isTraining && table !== null) {
+            return `${base}:t${table}`;
+        }
+        return base;
     }
 
     private formatBestScoreLabel(value: number): string {

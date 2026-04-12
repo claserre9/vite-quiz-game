@@ -38,7 +38,8 @@ export class AppViewModel extends BaseViewModel {
                             <span class="qm-stat-chip">Mode entraînement inclus</span>
                         </div>
                         <div class="qm-home-actions">
-                            <a href="${url('/entrainement')}" class="btn qm-btn px-4 py-3">🎯 Mode Entraînement</a>
+                            <a href="${url('/tables')}" class="btn qm-btn px-4 py-3">📚 Tables 1 à 10</a>
+                            <a href="${url('/entrainement')}" class="btn qm-btn-secondary px-4 py-3">🎯 Mode Entraînement</a>
                             <a href="${url('/quiz/addition')}" class="btn qm-btn-secondary px-4 py-3">🚀 Lancer une partie</a>
                         </div>
                     </section>
@@ -51,6 +52,18 @@ export class AppViewModel extends BaseViewModel {
                     </section>
 
                     <section class="row g-4 pb-5">
+                        <div class="col-12 col-md-4">
+                            <div class="card qm-feature-card" data-tone="tables">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="qm-feature-icon">📚</div>
+                                    <span class="qm-badge-soft mb-3">Tables 1 à 10</span>
+                                    <h3 class="card-title h4">Tables à apprendre</h3>
+                                    <p class="card-text qm-muted">Entraîne-toi sur chaque table d'addition ou de multiplication, de 1 à 10.</p>
+                                    <a href="${url('/tables')}" class="btn qm-btn mt-auto px-4 py-3">S'entraîner</a>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="col-12 col-md-4">
                             <div class="card qm-feature-card" data-tone="addition">
                                 <div class="card-body d-flex flex-column">

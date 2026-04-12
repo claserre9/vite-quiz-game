@@ -18,6 +18,7 @@ import { ContactFormViewModel } from '@components/ContactFormViewModel';
 import { SimpleFormViewModel } from '@components/SimpleFormViewModel';
 import { QuizViewModel } from '@components/QuizViewModel';
 import { TrainingViewModel } from '@components/TrainingViewModel';
+import { TablesViewModel } from '@components/TablesViewModel';
 
 /**
  * Route configuration interface
@@ -61,6 +62,10 @@ export const routes: RouteConfig[] = [
     {
         path: '/entrainement',
         handler: (context) => renderView(TrainingViewModel, context),
+    },
+    {
+        path: '/tables',
+        handler: (context) => renderView(TablesViewModel, context),
     },
     {
         path: '/quiz/:operation',
