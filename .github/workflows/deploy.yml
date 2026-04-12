@@ -16,6 +16,7 @@ jobs:
       - run: npm run build
         env:
           DEPLOY_BASE: /vite-quiz-game/
+      - run: cp dist/index.html dist/404.html
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
