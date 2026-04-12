@@ -1,4 +1,5 @@
 import { BaseViewModel } from '../core/BaseViewModel';
+import { url } from '../core/url';
 import { observable, observableArray, pureComputed } from 'knockout';
 import incorrectSoundObject from '../medias/sounds/incorrect.mp3';
 import correctSoundObject from '../medias/sounds/correct.mp3';
@@ -144,7 +145,7 @@ export class QuizViewModel extends BaseViewModel {
     }
 
     private getTemplate(): string {
-        const basePath = '/';
+        const basePath = url('/');
         return `
         <div class="container qm-quiz-page">
             <div data-bind="visible: isLoading()" class="qm-empty-card text-center">

@@ -1,14 +1,15 @@
 import { BaseViewModel } from '@core/BaseViewModel';
+import { url } from '@core/url';
 
 export class AppViewModel extends BaseViewModel {
     constructor(context: PageJS.Context | undefined) {
         super(context);
         this.setTemplate(`
             <div class="qm-shell">
-                <a href="/about" style="display:none"></a>
+                <a href="${url('/about')}" style="display:none"></a>
                 <nav class="navbar navbar-expand-lg qm-navbar">
                     <div class="container">
-                        <a class="navbar-brand qm-brand" href="/">
+                        <a class="navbar-brand qm-brand" href="${url('/')}">
                             <span class="qm-brand-badge">🧠</span>
                             <span>Quiz Math</span>
                         </a>
@@ -17,7 +18,7 @@ export class AppViewModel extends BaseViewModel {
                         </button>
                         <div class="collapse navbar-collapse" id="navbarNav">
                             <ul class="navbar-nav ms-auto">
-                                <li class="nav-item"><a class="nav-link qm-nav-link" href="/a-propos">À propos</a></li>
+                                <li class="nav-item"><a class="nav-link qm-nav-link" href="${url('/a-propos')}">À propos</a></li>
                             </ul>
                         </div>
                     </div>
@@ -37,8 +38,8 @@ export class AppViewModel extends BaseViewModel {
                             <span class="qm-stat-chip">Mode entraînement inclus</span>
                         </div>
                         <div class="qm-home-actions">
-                            <a href="/entrainement" class="btn qm-btn px-4 py-3">🎯 Mode Entraînement</a>
-                            <a href="/quiz/addition" class="btn qm-btn-secondary px-4 py-3">🚀 Lancer une partie</a>
+                            <a href="${url('/entrainement')}" class="btn qm-btn px-4 py-3">🎯 Mode Entraînement</a>
+                            <a href="${url('/quiz/addition')}" class="btn qm-btn-secondary px-4 py-3">🚀 Lancer une partie</a>
                         </div>
                     </section>
 
@@ -57,7 +58,7 @@ export class AppViewModel extends BaseViewModel {
                                     <span class="qm-badge-soft mb-3">Rapidité mentale</span>
                                     <h3 class="card-title h4">Addition</h3>
                                     <p class="card-text qm-muted">Enchaîne les calculs et développe des réflexes de champion.</p>
-                                    <a href="/quiz/addition" class="btn qm-btn mt-auto px-4 py-3">Commencer</a>
+                                    <a href="${url('/quiz/addition')}" class="btn qm-btn mt-auto px-4 py-3">Commencer</a>
                                 </div>
                             </div>
                         </div>
@@ -69,7 +70,7 @@ export class AppViewModel extends BaseViewModel {
                                     <span class="qm-badge-soft mb-3">Précision et logique</span>
                                     <h3 class="card-title h4">Soustraction</h3>
                                     <p class="card-text qm-muted">Travaille ta précision avec des questions variées et progressives.</p>
-                                    <a href="/quiz/soustraction" class="btn qm-btn mt-auto px-4 py-3">Commencer</a>
+                                    <a href="${url('/quiz/soustraction')}" class="btn qm-btn mt-auto px-4 py-3">Commencer</a>
                                 </div>
                             </div>
                         </div>
@@ -81,7 +82,7 @@ export class AppViewModel extends BaseViewModel {
                                     <span class="qm-badge-soft mb-3">Tables en turbo</span>
                                     <h3 class="card-title h4">Multiplication</h3>
                                     <p class="card-text qm-muted">Renforce les tables et gagne en vitesse avec un format nerveux.</p>
-                                    <a href="/quiz/multiplication" class="btn qm-btn mt-auto px-4 py-3">Commencer</a>
+                                    <a href="${url('/quiz/multiplication')}" class="btn qm-btn mt-auto px-4 py-3">Commencer</a>
                                 </div>
                             </div>
                         </div>
@@ -102,7 +103,7 @@ export class AppViewModel extends BaseViewModel {
                                     <span class="qm-badge-soft mb-3">Priorité 1</span>
                                     <h3 class="card-title h4">Nombre manquant</h3>
                                     <p class="card-text qm-muted">Trouve la valeur cachée dans une addition, soustraction ou multiplication.</p>
-                                    <a href="/quiz/addition?exercise=missing-number" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
+                                    <a href="${url('/quiz/addition?exercise=missing-number')}" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
                                 </div>
                             </div>
                         </div>
@@ -114,7 +115,7 @@ export class AppViewModel extends BaseViewModel {
                                     <span class="qm-badge-soft mb-3">Priorité 2</span>
                                     <h3 class="card-title h4">Vrai ou faux</h3>
                                     <p class="card-text qm-muted">Décide en un éclair si une égalité mathématique est correcte.</p>
-                                    <a href="/quiz/multiplication?exercise=true-false" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
+                                    <a href="${url('/quiz/multiplication?exercise=true-false')}" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
                                 </div>
                             </div>
                         </div>
@@ -126,7 +127,7 @@ export class AppViewModel extends BaseViewModel {
                                     <span class="qm-badge-soft mb-3">Priorité 3</span>
                                     <h3 class="card-title h4">Comparaison rapide</h3>
                                     <p class="card-text qm-muted">Repère instantanément le plus grand nombre, ou l’égalité.</p>
-                                    <a href="/quiz/general?exercise=comparison" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
+                                    <a href="${url('/quiz/general?exercise=comparison')}" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
                                 </div>
                             </div>
                         </div>
@@ -138,7 +139,7 @@ export class AppViewModel extends BaseViewModel {
                                     <span class="qm-badge-soft mb-3">Priorité 4</span>
                                     <h3 class="card-title h4">Défi chrono</h3>
                                     <p class="card-text qm-muted">Enchaîne le plus de bonnes réponses possible en 60 secondes.</p>
-                                    <a href="/quiz/general?exercise=chrono" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
+                                    <a href="${url('/quiz/general?exercise=chrono')}" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
                                 </div>
                             </div>
                         </div>
@@ -150,7 +151,7 @@ export class AppViewModel extends BaseViewModel {
                                     <span class="qm-badge-soft mb-3">Priorité 5</span>
                                     <h3 class="card-title h4">Suites logiques</h3>
                                     <p class="card-text qm-muted">Complète des suites numériques et affine ton raisonnement.</p>
-                                    <a href="/quiz/general?exercise=sequence" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
+                                    <a href="${url('/quiz/general?exercise=sequence')}" class="btn qm-btn mt-auto px-4 py-3">Tester</a>
                                 </div>
                             </div>
                         </div>

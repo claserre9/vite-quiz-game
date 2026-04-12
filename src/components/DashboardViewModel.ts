@@ -1,4 +1,5 @@
 import { BaseViewModel, renderView } from '@core/BaseViewModel';
+import { url } from '@core/url';
 
 export class DashboardViewModel extends BaseViewModel {
     private contentContainer = 'dashboard-content';
@@ -9,9 +10,9 @@ export class DashboardViewModel extends BaseViewModel {
             <div class="dashboard-layout">
                 <nav>
                     <ul>
-                        <li><a href="/dashboard">Home</a></li>
-                        <li><a href="/dashboard/profile">Profile</a></li>
-                        <li><a href="/dashboard/settings">Settings</a></li>
+                        <li><a href="${url('/dashboard')}">Home</a></li>
+                        <li><a href="${url('/dashboard/profile')}">Profile</a></li>
+                        <li><a href="${url('/dashboard/settings')}">Settings</a></li>
                     </ul>
                 </nav>
                 <div id="${this.contentContainer}"></div>

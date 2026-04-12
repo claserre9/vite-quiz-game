@@ -1,4 +1,5 @@
 import { BaseViewModel } from '@core/BaseViewModel';
+import { url } from '@core/url';
 import { observable } from 'knockout';
 
 export class TrainingViewModel extends BaseViewModel {
@@ -14,7 +15,7 @@ export class TrainingViewModel extends BaseViewModel {
   private getTemplate() {
     return `
       <div class="container qm-training-page" style="max-width: 760px;">
-        <a href="/" class="btn qm-btn-home mb-3">🏠 Accueil</a>
+        <a href="${url('/')}" class="btn qm-btn-home mb-3">🏠 Accueil</a>
         <div class="qm-panel">
           <div class="text-center mb-4">
             <span class="qm-pill">🎯 Mode Entraînement</span>
@@ -63,7 +64,7 @@ export class TrainingViewModel extends BaseViewModel {
 
           <div class="mt-4 d-flex flex-wrap gap-2 justify-content-center">
             <button class="btn qm-btn px-4 py-3" data-bind="click: startTraining">🚀 Commencer</button>
-            <a href="/" class="btn qm-btn-secondary px-4 py-3">Annuler</a>
+            <a href="${url('/')}" class="btn qm-btn-secondary px-4 py-3">Annuler</a>
           </div>
         </div>
       </div>

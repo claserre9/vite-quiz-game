@@ -1,11 +1,12 @@
 import { BaseViewModel } from '@core/BaseViewModel';
+import { url } from '@core/url';
 
 export class AboutViewModel extends BaseViewModel {
     constructor(context: PageJS.Context | undefined) {
         super(context);
         this.setTemplate(`
             <div class="container qm-about-page" style="max-width: 860px;">
-                <a href="/" class="btn qm-btn-home mb-3">🏠 Accueil</a>
+                <a href="${url('/')}" class="btn qm-btn-home mb-3">🏠 Accueil</a>
                 <div class="qm-about-card">
                     <span class="qm-pill">📘 À propos</span>
                     <h1 class="qm-section-title mt-3">Quiz Math, pensé pour apprendre avec le sourire</h1>
