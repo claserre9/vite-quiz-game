@@ -6,7 +6,8 @@ export class AppViewModel extends BaseViewModel {
     constructor(context: PageJS.Context | undefined) {
         super(context);
         const profile = ProfileStore.getActiveProfile();
-        const profileBar = profile ? `
+        const profileBar = profile
+            ? `
             <div class="qm-profile-bar">
                 <div class="qm-profile-chip">
                     <span class="qm-profile-chip-avatar"
@@ -14,7 +15,8 @@ export class AppViewModel extends BaseViewModel {
                     <span class="qm-profile-chip-name">${profile.name}</span>
                 </div>
                 <a href="${url('/profils')}" class="qm-profile-change-btn">Changer de profil</a>
-            </div>` : '';
+            </div>`
+            : '';
         this.setTemplate(`
             <div class="qm-shell">
                 <a href="${url('/about')}" style="display:none"></a>
@@ -182,6 +184,10 @@ export class AppViewModel extends BaseViewModel {
                         </div>
                     </section>
                 </main>
+
+                <footer class="qm-footer">
+                    v${__APP_VERSION__} · ${__BUILD_COMMIT__} · ${__BUILD_DATE__}
+                </footer>
             </div>
         `);
     }

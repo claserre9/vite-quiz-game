@@ -3,17 +3,19 @@ import { url } from '@core/url';
 import { observable } from 'knockout';
 
 export class TrainingViewModel extends BaseViewModel {
-  op = observable<'addition' | 'multiplication' | 'soustraction'>('addition');
-  exercise = observable<'classic' | 'missing-number' | 'true-false' | 'comparison' | 'sequence'>('classic');
-  table = observable<number>(2);
+    op = observable<'addition' | 'multiplication' | 'soustraction'>('addition');
+    exercise = observable<
+        'classic' | 'missing-number' | 'true-false' | 'comparison' | 'sequence'
+    >('classic');
+    table = observable<number>(2);
 
-  constructor(context: PageJS.Context | undefined) {
-    super(context);
-    this.setTemplate(this.getTemplate());
-  }
+    constructor(context: PageJS.Context | undefined) {
+        super(context);
+        this.setTemplate(this.getTemplate());
+    }
 
-  private getTemplate() {
-    return `
+    private getTemplate() {
+        return `
       <div class="container qm-training-page" style="max-width: 760px;">
         <a href="${url('/')}" class="btn qm-btn-home mb-3">🏠 Accueil</a>
         <div class="qm-panel">
@@ -78,22 +80,26 @@ export class TrainingViewModel extends BaseViewModel {
         </div>
       </div>
     `;
-  }
-
-  startTraining = () => {
-    const exercise = this.exercise();
-    const op = exercise === 'comparison' || exercise === 'sequence' ? 'general' : this.op();
-    const table = this.table();
-    const qs = new URLSearchParams({
-      mode: 'training',
-      table: String(table),
-      exercise,
-    });
-    const path = `/quiz/${op}?${qs.toString()}`;
-    if (window.page && typeof window.page.show === 'function') {
-      window.page.show(path);
-    } else {
-      window.location.href = path;
     }
-  };
+
+    startTraining = () => {
+        const exercise = this.exercise();
+        const op =
+            exercise === 'comparison' || exercise === 'sequence'
+                ? 'general'
+                : this.op();
+        const table = this.table();
+        const qs = new URLSearchParams({
+            mode: 'training',
+            table: String(table),
+            exercise,
+            maxFactor: '11',
+        });
+        const path = `/quiz/${op}?${qs.toString()}`;
+        if (window.page && typeof window.page.show === 'function') {
+            window.page.show(path);
+        } else {
+            window.location.href = path;
+        }
+    };
 }
