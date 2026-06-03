@@ -17,6 +17,7 @@ const OPERATIONS: readonly Operation[] = [
     'addition',
     'soustraction',
     'multiplication',
+    'division',
     'general',
 ] as const;
 
@@ -48,7 +49,11 @@ export const EXERCISE_LABELS: Record<ExerciseType, string> = {
     'table-gaps': 'Table à compléter',
 };
 
-const FREE_INPUT_EXERCISES: readonly ExerciseType[] = ['free-input', 'sprint', 'table-gaps'];
+const FREE_INPUT_EXERCISES: readonly ExerciseType[] = [
+    'free-input',
+    'sprint',
+    'table-gaps',
+];
 
 export class QuizViewModel extends BaseViewModel {
     public static TIME_LEFT = 15;
@@ -84,11 +89,17 @@ export class QuizViewModel extends BaseViewModel {
     public bestTimeLabel = observable('');
 
     public isFreeInput = pureComputed(() =>
-        (FREE_INPUT_EXERCISES as readonly string[]).includes(this.exerciseType())
+        (FREE_INPUT_EXERCISES as readonly string[]).includes(
+            this.exerciseType()
+        )
     );
 
-    public shouldFocusInput = pureComputed(() =>
-        this.isFreeInput() && !this.answerChosen() && !this.quizFinished() && !this.isLoading()
+    public shouldFocusInput = pureComputed(
+        () =>
+            this.isFreeInput() &&
+            !this.answerChosen() &&
+            !this.quizFinished() &&
+            !this.isLoading()
     );
 
     /** Cells for the table-gaps grid visualization */
@@ -99,20 +110,36 @@ export class QuizViewModel extends BaseViewModel {
         const maxF = this.maxFactor() ?? 10;
         const currentIdx = this.currentIndex();
         const qs = this.questions();
-        const symbol = op === 'multiplication' ? '×' : op === 'addition' ? '+' : '−';
+        const symbol =
+            op === 'multiplication'
+                ? '×'
+                : op === 'addition'
+                  ? '+'
+                  : op === 'division'
+                    ? '÷'
+                    : '−';
 
         return Array.from({ length: maxF }, (_, i) => {
             const n = i + 1;
             const result =
-                op === 'multiplication' ? t * n :
-                op === 'soustraction'   ? n :
-                                          t + n;
+                op === 'multiplication'
+                    ? t * n
+                    : op === 'division'
+                      ? n
+                      : op === 'soustraction'
+                        ? n
+                        : t + n;
             const label =
-                op === 'soustraction' ? `${t + n}${symbol}${t}` : `${t}${symbol}${n}`;
+                op === 'soustraction'
+                    ? `${t + n}${symbol}${t}`
+                    : op === 'division'
+                      ? `${t * n}${symbol}${t}`
+                      : `${t}${symbol}${n}`;
             const answered = i < currentIdx;
             const isCurrent = i === currentIdx && !this.quizFinished();
             const q = qs[i];
-            const wasCorrect = answered && q?.selectedAnswer()?.correct === true;
+            const wasCorrect =
+                answered && q?.selectedAnswer()?.correct === true;
             return { label, result, answered, isCurrent, wasCorrect };
         });
     });
@@ -135,19 +162,21 @@ export class QuizViewModel extends BaseViewModel {
         if (this.exerciseType() === 'sprint') {
             const perfect = s === this.totalQuestions();
             const t = this.sprintElapsed();
-            if (perfect && t <= 20) return '⚡ Fulgurant ! Vitesse de l\'éclair !';
+            if (perfect && t <= 20)
+                return "⚡ Fulgurant ! Vitesse de l'éclair !";
             if (perfect && t <= 40) return '🏃 Super rapide ! Excellent !';
             if (perfect) return '🏆 Table parfaite ! Bravo !';
-            if (s === this.totalQuestions() - 1) return '😅 Presque parfait, encore un effort !';
-            return '💪 Continue à t\'entraîner !';
+            if (s === this.totalQuestions() - 1)
+                return '😅 Presque parfait, encore un effort !';
+            return "💪 Continue à t'entraîner !";
         }
 
         const total = this.totalQuestions();
         const pct = total > 0 ? s / total : 0;
         if (pct >= 0.95) return '🏆 Parfait ! Tu es un champion !';
-        if (pct >= 0.80) return '🌟 Excellent travail !';
+        if (pct >= 0.8) return '🌟 Excellent travail !';
         if (pct >= 0.65) return '👍 Très bien, continue comme ça !';
-        if (pct >= 0.50) return '😅 Pas mal, mais tu peux faire mieux !';
+        if (pct >= 0.5) return '😅 Pas mal, mais tu peux faire mieux !';
         if (pct >= 0.35) return "😬 C'est la moyenne, encore un effort !";
         return "💪 Continue à t'entraîner, ça va venir !";
     });
@@ -172,8 +201,14 @@ export class QuizViewModel extends BaseViewModel {
         const maxFactorParam = params.get('maxFactor');
 
         this.isTraining(params.get('mode') === 'training');
-        this.table(tableParam !== null && tableParam !== '' ? Number(tableParam) : null);
-        this.maxFactor(maxFactorParam !== null && maxFactorParam !== '' ? Number(maxFactorParam) : null);
+        this.table(
+            tableParam !== null && tableParam !== '' ? Number(tableParam) : null
+        );
+        this.maxFactor(
+            maxFactorParam !== null && maxFactorParam !== ''
+                ? Number(maxFactorParam)
+                : null
+        );
         this.exerciseType(this.parseExercise(params.get('exercise')));
 
         this.correctSoundObject = new Audio(correctSoundObject);
@@ -189,7 +224,11 @@ export class QuizViewModel extends BaseViewModel {
                 this.ensureChronoQuestionBuffer();
                 return;
             }
-            if (!this.isTraining() && !this.isFreeInput() && this.exerciseType() !== 'sprint') {
+            if (
+                !this.isTraining() &&
+                !this.isFreeInput() &&
+                this.exerciseType() !== 'sprint'
+            ) {
                 this.startPerQuestionTimer();
             }
         });
@@ -347,18 +386,28 @@ export class QuizViewModel extends BaseViewModel {
             this.timerId = null;
         }
 
-        const waitMs = this.exerciseType() === 'chrono' ? 350 : this.isFreeInput() ? 600 : 800;
+        const waitMs =
+            this.exerciseType() === 'chrono'
+                ? 350
+                : this.isFreeInput()
+                  ? 600
+                  : 800;
         setTimeout(() => this.moveToNextQuestion(), waitMs);
     };
 
     submitFreeInput = () => {
         const question = this.currentQuestion();
-        if (!question || this.answerChosen() || !this.userInput().trim()) return;
+        if (!question || this.answerChosen() || !this.userInput().trim())
+            return;
 
         const input = this.userInput().trim();
         const correct = input === question.correctValue;
         this.lastAnswerCorrect(correct);
-        this.lastAnswerFeedback(correct ? '✓ Correct !' : `✗ La bonne réponse était ${question.correctValue}`);
+        this.lastAnswerFeedback(
+            correct
+                ? '✓ Correct !'
+                : `✗ La bonne réponse était ${question.correctValue}`
+        );
         this.userInput('');
         void this.selectAnswer({ answer: input, correct });
     };
@@ -388,7 +437,9 @@ export class QuizViewModel extends BaseViewModel {
 
     async loadQuestions(operation?: string): Promise<void> {
         try {
-            const op = this.parseOperation(operation ?? this.context?.params?.operation);
+            const op = this.parseOperation(
+                operation ?? this.context?.params?.operation
+            );
             const exercise = this.exerciseType();
 
             this.isLoading(true);
@@ -413,10 +464,16 @@ export class QuizViewModel extends BaseViewModel {
             this.questions([]);
 
             if (exercise === 'sprint') {
-                this.bestScoreLabel(this.loadSprintBestTimeLabel(op, this.table()));
-                this.bestTimeLabel(this.loadSprintBestTimeLabel(op, this.table()));
+                this.bestScoreLabel(
+                    this.loadSprintBestTimeLabel(op, this.table())
+                );
+                this.bestTimeLabel(
+                    this.loadSprintBestTimeLabel(op, this.table())
+                );
             } else {
-                this.bestScoreLabel(this.loadBestScoreLabel(op, exercise, this.isTraining()));
+                this.bestScoreLabel(
+                    this.loadBestScoreLabel(op, exercise, this.isTraining())
+                );
                 this.bestTimeLabel('');
             }
 
@@ -438,7 +495,7 @@ export class QuizViewModel extends BaseViewModel {
                 return;
             }
 
-            if (exercise === 'classic') {
+            if (exercise === 'classic' && op !== 'division') {
                 this.questions(await this.loadClassicQuestionsFromJson(op));
             } else {
                 this.questions(generateQuestions(op, exercise, genOptions));
@@ -455,7 +512,9 @@ export class QuizViewModel extends BaseViewModel {
             }
         } catch (error) {
             console.error('Error loading questions:', error);
-            this.errorMessage("Oups ! Une erreur s'est produite en chargeant les questions.");
+            this.errorMessage(
+                "Oups ! Une erreur s'est produite en chargeant les questions."
+            );
         } finally {
             this.isLoading(false);
         }
@@ -465,12 +524,15 @@ export class QuizViewModel extends BaseViewModel {
         if (!question || !question.selectedAnswer()) return null;
         return {
             'btn-success': answer.correct,
-            'btn-danger': !answer.correct && answer === question.selectedAnswer(),
+            'btn-danger':
+                !answer.correct && answer === question.selectedAnswer(),
         };
     }
 
     private parseOperation(operation?: string): Operation {
-        const value = String(operation || 'addition').replace(/^\/+/, '').toLowerCase();
+        const value = String(operation || 'addition')
+            .replace(/^\/+/, '')
+            .toLowerCase();
         return (OPERATIONS as readonly string[]).includes(value)
             ? (value as Operation)
             : 'addition';
@@ -490,9 +552,11 @@ export class QuizViewModel extends BaseViewModel {
         return 'Chrono';
     }
 
-    private async loadClassicQuestionsFromJson(op: Operation): Promise<Question[]> {
+    private async loadClassicQuestionsFromJson(
+        op: Operation
+    ): Promise<Question[]> {
         const fallback = 'addition' as const;
-        const safeOp = op === 'general' ? fallback : op;
+        const safeOp = op === 'general' || op === 'division' ? fallback : op;
         const loaders = {
             addition: () => import('../json/addition.json'),
             soustraction: () => import('../json/soustraction.json'),
@@ -556,7 +620,10 @@ export class QuizViewModel extends BaseViewModel {
         this.answerChosen(false);
 
         if (this.exerciseType() === 'chrono') {
-            if (this.timeLeft() <= 0) { this.finalizeQuiz(); return; }
+            if (this.timeLeft() <= 0) {
+                this.finalizeQuiz();
+                return;
+            }
             this.currentIndex(this.currentIndex() + 1);
             this.ensureChronoQuestionBuffer();
             return;
@@ -599,19 +666,29 @@ export class QuizViewModel extends BaseViewModel {
     private saveBestScore() {
         if (typeof window === 'undefined' || !window.localStorage) return;
 
-        const key = this.getBestScoreKey(this.currentOperation(), this.exerciseType(), this.isTraining());
+        const key = this.getBestScoreKey(
+            this.currentOperation(),
+            this.exerciseType(),
+            this.isTraining()
+        );
         const currentScore = this.score();
         const currentTotal = this.totalQuestions();
-        const previous = this.parseStoredScore(window.localStorage.getItem(key));
+        const previous = this.parseStoredScore(
+            window.localStorage.getItem(key)
+        );
 
         const currentPct = currentTotal > 0 ? currentScore / currentTotal : 0;
         const previousPct = previous ? previous.score / previous.total : 0;
 
         if (currentPct > previousPct) {
             window.localStorage.setItem(key, `${currentScore}/${currentTotal}`);
-            this.bestScoreLabel(this.formatBestScoreLabel(currentScore, currentTotal));
+            this.bestScoreLabel(
+                this.formatBestScoreLabel(currentScore, currentTotal)
+            );
         } else if (previous) {
-            this.bestScoreLabel(this.formatBestScoreLabel(previous.score, previous.total));
+            this.bestScoreLabel(
+                this.formatBestScoreLabel(previous.score, previous.total)
+            );
         }
     }
 
@@ -636,21 +713,40 @@ export class QuizViewModel extends BaseViewModel {
         }
     }
 
-    private loadBestScoreLabel(op: Operation, exercise: ExerciseType, isTraining: boolean): string {
-        if (typeof window === 'undefined' || !window.localStorage) return 'Aucun record';
+    private loadBestScoreLabel(
+        op: Operation,
+        exercise: ExerciseType,
+        isTraining: boolean
+    ): string {
+        if (typeof window === 'undefined' || !window.localStorage)
+            return 'Aucun record';
         const key = this.getBestScoreKey(op, exercise, isTraining);
         const stored = this.parseStoredScore(window.localStorage.getItem(key));
-        return stored ? this.formatBestScoreLabel(stored.score, stored.total) : 'Aucun record';
+        return stored
+            ? this.formatBestScoreLabel(stored.score, stored.total)
+            : 'Aucun record';
     }
 
-    private loadSprintBestTimeLabel(op: Operation, table: number | null): string {
-        if (typeof window === 'undefined' || !window.localStorage || table === null) return 'Aucun record';
+    private loadSprintBestTimeLabel(
+        op: Operation,
+        table: number | null
+    ): string {
+        if (
+            typeof window === 'undefined' ||
+            !window.localStorage ||
+            table === null
+        )
+            return 'Aucun record';
         const key = this.getSprintTimeKey(op, table);
         const stored = Number(window.localStorage.getItem(key) || '0');
         return stored > 0 ? `${stored}s` : 'Aucun record';
     }
 
-    private getBestScoreKey(op: Operation, exercise: ExerciseType, isTraining: boolean): string {
+    private getBestScoreKey(
+        op: Operation,
+        exercise: ExerciseType,
+        isTraining: boolean
+    ): string {
         const base = `quiz-math-best:${exercise}:${op}:${isTraining ? 'training' : 'normal'}`;
         const table = this.table();
         const suffix = isTraining && table !== null ? `:t${table}` : '';
@@ -661,11 +757,15 @@ export class QuizViewModel extends BaseViewModel {
         return ProfileStore.scoreKey(`quiz-math-sprint-time:${op}:t${table}`);
     }
 
-    private parseStoredScore(raw: string | null): { score: number; total: number } | null {
+    private parseStoredScore(
+        raw: string | null
+    ): { score: number; total: number } | null {
         if (!raw) return null;
         if (raw.includes('/')) {
             const [s, t] = raw.split('/').map(Number);
-            return isNaN(s) || isNaN(t) || t === 0 ? null : { score: s, total: t };
+            return isNaN(s) || isNaN(t) || t === 0
+                ? null
+                : { score: s, total: t };
         }
         const legacy = Number(raw);
         return isNaN(legacy) || legacy === 0
@@ -674,12 +774,15 @@ export class QuizViewModel extends BaseViewModel {
     }
 
     private formatBestScoreLabel(score: number, total: number): string {
-        return this.exerciseType() === 'chrono' ? `${score} pts` : `${score}/${total}`;
+        return this.exerciseType() === 'chrono'
+            ? `${score} pts`
+            : `${score}/${total}`;
     }
 
     private getOperationLabel(op: Operation): string {
         if (op === 'soustraction') return 'Soustraction';
         if (op === 'multiplication') return 'Multiplication';
+        if (op === 'division') return 'Division';
         if (op === 'general') return 'Mix';
         return 'Addition';
     }

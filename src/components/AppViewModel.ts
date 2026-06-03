@@ -113,6 +113,30 @@ export class AppViewModel extends BaseViewModel {
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-12 col-md-4">
+                            <div class="card qm-feature-card" data-tone="division">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="qm-feature-icon">➗</div>
+                                    <span class="qm-badge-soft mb-3">Partage & répartition</span>
+                                    <h3 class="card-title h4">Division</h3>
+                                    <p class="card-text qm-muted">Apprends à partager les nombres en parts égales, résultats entiers garantis.</p>
+                                    <a href="${url('/quiz/division')}" class="btn qm-btn mt-auto px-4 py-3">Commencer</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <div class="card qm-feature-card" data-tone="general">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="qm-feature-icon">🎲</div>
+                                    <span class="qm-badge-soft mb-3">Surprise !</span>
+                                    <h3 class="card-title h4">Mode aléatoire</h3>
+                                    <p class="card-text qm-muted">Toutes les opérations mélangées dans une même partie — reste sur tes gardes !</p>
+                                    <a href="${url('/quiz/general')}" class="btn qm-btn mt-auto px-4 py-3">Commencer</a>
+                                </div>
+                            </div>
+                        </div>
                     </section>
 
                     <section class="my-2 text-center">

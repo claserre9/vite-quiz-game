@@ -4,6 +4,7 @@ export type Operation =
     | 'addition'
     | 'soustraction'
     | 'multiplication'
+    | 'division'
     | 'general';
 export type ExerciseType =
     | 'classic'
@@ -96,6 +97,9 @@ function generateClassicQuestions(
     } else if (safeOp === 'addition') {
         for (let n = 1; n <= max; n++)
             qs.push(makeChoiceQuestion(`${t} + ${n} = ?`, t + n));
+    } else if (safeOp === 'division') {
+        for (let n = 1; n <= max; n++)
+            qs.push(makeChoiceQuestion(`${t * n} ÷ ${t} = ?`, n));
     } else {
         for (let n = 1; n <= max; n++) {
             const a = t + n;
@@ -143,6 +147,24 @@ function generateMissingNumberQuestions(
                     missingFirst ? total : a
                 )
             );
+        } else if (safeOp === 'division') {
+            const { a: dividend, b: divisor } = divPair(max);
+            const quotient = dividend / divisor;
+            const variant = randomInt(0, 2);
+            questions.push(
+                makeChoiceQuestion(
+                    variant === 0
+                        ? `❓ ÷ ${divisor} = ${quotient}`
+                        : variant === 1
+                          ? `${dividend} ÷ ❓ = ${quotient}`
+                          : `${dividend} ÷ ${divisor} = ❓`,
+                    variant === 0
+                        ? dividend
+                        : variant === 1
+                          ? divisor
+                          : quotient
+                )
+            );
         } else {
             const total = a * b;
             const missingFirst = Math.random() < 0.5;
@@ -174,9 +196,14 @@ function generateTrueFalseQuestions(
     const questions: Question[] = [];
 
     for (let i = 0; i < count; i++) {
-        const a = randomInt(1, max);
-        const b =
-            safeOp === 'soustraction' ? randomInt(1, a) : randomInt(1, max);
+        const isDivision = safeOp === 'division';
+        const pair = isDivision ? divPair(max) : null;
+        const a = pair ? pair.a : randomInt(1, max);
+        const b = pair
+            ? pair.b
+            : safeOp === 'soustraction'
+              ? randomInt(1, a)
+              : randomInt(1, max);
         const correctResult = calculate(a, b, safeOp);
         const shouldBeTrue = Math.random() < 0.5;
         const shownResult = shouldBeTrue
@@ -240,9 +267,13 @@ function generateChronoQuestions(
             op === 'general' ? randomOperation() : op;
         const max =
             options.maxFactor ?? (currentOp === 'multiplication' ? 12 : 20);
-        const a = randomInt(1, max);
-        const b =
-            currentOp === 'soustraction' ? randomInt(1, a) : randomInt(1, max);
+        const pair = currentOp === 'division' ? divPair(max) : null;
+        const a = pair ? pair.a : randomInt(1, max);
+        const b = pair
+            ? pair.b
+            : currentOp === 'soustraction'
+              ? randomInt(1, a)
+              : randomInt(1, max);
         questions.push(
             makeChoiceQuestion(
                 renderOperation(a, b, currentOp),
@@ -322,8 +353,12 @@ function generateInverseQuestions(
     const questions: Question[] = [];
 
     for (let i = 0; i < count; i++) {
-        const a = randomInt(1, max);
-        const b = randomInt(1, max);
+        const isPairOp = safeOp === 'division';
+        const mainPair = isPairOp
+            ? divPair(max)
+            : { a: randomInt(1, max), b: randomInt(1, max) };
+        const a = mainPair.a;
+        const b = mainPair.b;
         const result = calculate(a, b, safeOp);
         const correctExpr = `${a} ${symbol} ${b}`;
 
@@ -332,8 +367,11 @@ function generateInverseQuestions(
         let attempts = 0;
         while (distractors.length < 3 && attempts < 60) {
             attempts++;
-            const da = randomInt(1, max);
-            const db = randomInt(1, max);
+            const dp = isPairOp
+                ? divPair(max)
+                : { a: randomInt(1, max), b: randomInt(1, max) };
+            const da = dp.a;
+            const db = dp.b;
             const dr = calculate(da, db, safeOp);
             const dExpr = `${da} ${symbol} ${db}`;
             if (!usedResults.has(dr) && dExpr !== correctExpr) {
@@ -372,11 +410,18 @@ function generateDuelQuestions(
         const symbol = operationSymbol(currentOp);
         const max =
             options.maxFactor ?? (currentOp === 'multiplication' ? 10 : 20);
+        const isDivision = currentOp === 'division';
 
-        const a1 = randomInt(1, max);
-        const b1 = randomInt(1, max);
-        const a2 = randomInt(1, max);
-        const b2 = randomInt(1, max);
+        const p1 = isDivision
+            ? divPair(max)
+            : { a: randomInt(1, max), b: randomInt(1, max) };
+        const p2 = isDivision
+            ? divPair(max)
+            : { a: randomInt(1, max), b: randomInt(1, max) };
+        const a1 = p1.a;
+        const b1 = p1.b;
+        const a2 = p2.a;
+        const b2 = p2.b;
 
         const r1 = calculate(a1, b1, currentOp);
         const r2 = calculate(a2, b2, currentOp);
@@ -424,6 +469,8 @@ function generateFreeInputQuestions(
             qs.push(makeFreeInputQuestion(`${t} × ${n} = ?`, String(t * n)));
         } else if (safeOp === 'addition') {
             qs.push(makeFreeInputQuestion(`${t} + ${n} = ?`, String(t + n)));
+        } else if (safeOp === 'division') {
+            qs.push(makeFreeInputQuestion(`${t * n} ÷ ${t} = ?`, String(n)));
         } else {
             const a = t + n;
             qs.push(makeFreeInputQuestion(`${a} − ${t} = ?`, String(n)));
@@ -451,6 +498,8 @@ export function generateSprintQuestions(
             qs.push(makeFreeInputQuestion(`${t} × ${n} = ?`, String(t * n)));
         } else if (safeOp === 'addition') {
             qs.push(makeFreeInputQuestion(`${t} + ${n} = ?`, String(t + n)));
+        } else if (safeOp === 'division') {
+            qs.push(makeFreeInputQuestion(`${t * n} ÷ ${t} = ?`, String(n)));
         } else {
             const a = t + n;
             qs.push(makeFreeInputQuestion(`${a} − ${t} = ?`, String(n)));
@@ -523,7 +572,15 @@ function calculate(
 ): number {
     if (op === 'addition') return a + b;
     if (op === 'soustraction') return a - b;
+    if (op === 'division') return Math.round(a / b);
     return a * b;
+}
+
+/** Returns {a, b} where a ÷ b is always an integer (b is divisor, a = b × quotient). */
+function divPair(max: number): { a: number; b: number } {
+    const b = randomInt(2, Math.min(max, 10));
+    const q = randomInt(1, max);
+    return { a: b * q, b };
 }
 
 function renderOperation(
@@ -545,6 +602,7 @@ function renderExpression(
 function operationSymbol(op: Exclude<Operation, 'general'>): string {
     if (op === 'addition') return '+';
     if (op === 'soustraction') return '−';
+    if (op === 'division') return '÷';
     return '×';
 }
 
@@ -571,6 +629,7 @@ function randomOperation(): Exclude<Operation, 'general'> {
         'addition',
         'soustraction',
         'multiplication',
+        'division',
     ];
     return ops[randomInt(0, ops.length - 1)];
 }

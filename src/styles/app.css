@@ -278,6 +278,14 @@ a {
     background: linear-gradient(90deg, #a78bfa, #60a5fa);
 }
 
+.qm-feature-card[data-tone='division']::before {
+    background: linear-gradient(90deg, #f472b6, #a78bfa);
+}
+
+.qm-feature-card[data-tone='general']::before {
+    background: linear-gradient(90deg, #38bdf8, #34d399);
+}
+
 .qm-table-card {
     cursor: pointer;
     transition:
