@@ -1,6 +1,5 @@
 import { BaseViewModel } from '@core/BaseViewModel';
-import { url } from '@core/url';
-import { observable } from 'knockout';
+import { observable, observableArray } from 'knockout';
 import type { ExerciseType, Operation } from '@core/QuestionGenerator';
 
 type Difficulty = 'facile' | 'moyen' | 'difficile';
@@ -14,7 +13,7 @@ const DIFFICULTY_MAX: Record<Difficulty, number> = {
 export class TrainingViewModel extends BaseViewModel {
     op = observable<Exclude<Operation, 'general'> | 'general'>('addition');
     exercise = observable<ExerciseType>('classic');
-    table = observable<number>(2);
+    tables = observableArray<number>([2]);
     difficulty = observable<Difficulty>('moyen');
 
     constructor(context: PageJS.Context | undefined) {
@@ -25,12 +24,12 @@ export class TrainingViewModel extends BaseViewModel {
     private getTemplate() {
         return `
       <div class="container qm-training-page" style="max-width: 760px;">
-        <a href="${url('/')}" class="btn qm-btn-home mb-3">🏠 Accueil</a>
+        <a href="/" class="btn qm-btn-home mb-3">🏠 Accueil</a>
         <div class="qm-panel">
           <div class="text-center mb-4">
             <span class="qm-pill">🎯 Mode Entraînement</span>
             <h1 class="qm-section-title mt-3 mb-2">Prépare ton défi sur mesure</h1>
-            <p class="qm-muted mb-0">Choisis une opération, une table et lance une session sans pression.</p>
+            <p class="qm-muted mb-0">Choisis une opération, tes tables et lance une session sans pression.</p>
           </div>
 
           <div class="row g-3 align-items-end">
@@ -64,22 +63,6 @@ export class TrainingViewModel extends BaseViewModel {
                 </select>
               </div>
               <div class="col-12 col-md-6">
-                <label class="form-label fw-bold">Table</label>
-                <select class="form-select qm-select" data-bind="value: table">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                  <option value="11">11</option>
-                </select>
-              </div>
-              <div class="col-12 col-md-6">
                 <label class="form-label fw-bold">Difficulté</label>
                 <select class="form-select qm-select" data-bind="value: difficulty">
                   <option value="facile">🟢 Facile — chiffres 1 à 6</option>
@@ -89,9 +72,25 @@ export class TrainingViewModel extends BaseViewModel {
               </div>
           </div>
 
+          <div class="mt-3">
+            <label class="form-label fw-bold">
+              Tables
+              <span class="qm-muted ms-1" style="font-weight:400; font-size:0.82rem;" data-bind="visible: tables().length === 0">— choisir au moins une</span>
+              <span class="qm-muted ms-1" style="font-weight:400; font-size:0.82rem;" data-bind="visible: tables().length > 0">
+                — <span data-bind="text: tables().length"></span> sélectionnée<span data-bind="visible: tables().length > 1">s</span>
+              </span>
+            </label>
+            <div class="d-flex flex-wrap gap-2" data-bind="foreach: [1,2,3,4,5,6,7,8,9,10,11]">
+              <label class="qm-table-tag" data-bind="css: { 'qm-table-tag--active': $root.tables().indexOf($data) >= 0 }">
+                <input type="checkbox" style="display:none" data-bind="checked: $root.tables, checkedValue: $data">
+                <span data-bind="text: $data"></span>
+              </label>
+            </div>
+          </div>
+
           <div class="mt-4 d-flex flex-wrap gap-2 justify-content-center">
-            <button class="btn qm-btn px-4 py-3" data-bind="click: startTraining">🚀 Commencer</button>
-            <a href="${url('/')}" class="btn qm-btn-secondary px-4 py-3">Annuler</a>
+            <button class="btn qm-btn px-4 py-3" data-bind="click: startTraining, disable: tables().length === 0">🚀 Commencer</button>
+            <a href="/" class="btn qm-btn-secondary px-4 py-3">Annuler</a>
           </div>
         </div>
       </div>
@@ -100,14 +99,15 @@ export class TrainingViewModel extends BaseViewModel {
 
     startTraining = () => {
         const exercise = this.exercise();
+        const tables = this.tables();
+        if (tables.length === 0) return;
         const needsGeneral =
             exercise === 'comparison' || exercise === 'sequence';
         const op = needsGeneral ? 'general' : this.op();
-        const table = this.table();
         const maxFactor = DIFFICULTY_MAX[this.difficulty()];
         const qs = new URLSearchParams({
             mode: 'training',
-            table: String(table),
+            tables: tables.join(','),
             exercise,
             maxFactor: String(maxFactor),
             difficulty: this.difficulty(),

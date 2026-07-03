@@ -70,6 +70,7 @@ export class QuizViewModel extends BaseViewModel {
     public quizFinished = observable(false);
     public isTraining = observable(false);
     public table = observable<number | null>(null);
+    public tables = observableArray<number>([]);
     public maxFactor = observable<number | null>(null);
     public timeLeft = observable(QuizViewModel.TIME_LEFT);
     public exerciseType = observable<ExerciseType>('classic');
@@ -92,6 +93,13 @@ export class QuizViewModel extends BaseViewModel {
         (FREE_INPUT_EXERCISES as readonly string[]).includes(
             this.exerciseType()
         )
+    );
+
+    public isUnlimitedTraining = pureComputed(
+        () =>
+            this.isTraining() &&
+            this.exerciseType() !== 'sprint' &&
+            this.exerciseType() !== 'table-gaps'
     );
 
     public shouldFocusInput = pureComputed(
@@ -189,7 +197,8 @@ export class QuizViewModel extends BaseViewModel {
 
     public totalQuestions = pureComputed(() => this.questions().length);
     public remainingQuestions = pureComputed(() => {
-        if (this.exerciseType() === 'chrono') return '∞';
+        if (this.exerciseType() === 'chrono' || this.isUnlimitedTraining())
+            return '∞';
         return String(Math.max(this.totalQuestions() - this.currentIndex(), 0));
     });
 
@@ -198,12 +207,24 @@ export class QuizViewModel extends BaseViewModel {
 
         const params = new URLSearchParams(context?.querystring || '');
         const tableParam = params.get('table');
+        const tablesParam = params.get('tables');
         const maxFactorParam = params.get('maxFactor');
 
         this.isTraining(params.get('mode') === 'training');
-        this.table(
-            tableParam !== null && tableParam !== '' ? Number(tableParam) : null
-        );
+
+        if (tablesParam) {
+            const parsed = tablesParam
+                .split(',')
+                .map(Number)
+                .filter((n) => !isNaN(n) && n >= 1);
+            this.tables(parsed);
+            this.table(parsed[0] ?? null);
+        } else if (tableParam !== null && tableParam !== '') {
+            const t = Number(tableParam);
+            this.table(t);
+            this.tables([t]);
+        }
+
         this.maxFactor(
             maxFactorParam !== null && maxFactorParam !== ''
                 ? Number(maxFactorParam)
@@ -334,16 +355,20 @@ export class QuizViewModel extends BaseViewModel {
                                     <span class="qm-score-value qm-score-value-sm" data-bind="text: bestScoreLabel"></span>
                                 </div>
                             </div>
+
+                            <div data-bind="visible: isTraining()" class="text-center mt-3">
+                                <button class="btn qm-btn-secondary px-4 py-2" data-bind="click: quitTraining">🚪 Terminer la session</button>
+                            </div>
                         </div>
 
                         <div data-bind="if: quizFinished()" class="qm-finish">
-                            <span class="qm-finish-badge">🏁 Partie terminée</span>
-                            <h2 class="qm-title-font mt-3">Bravo, tu as terminé !</h2>
+                            <span class="qm-finish-badge" data-bind="text: isTraining() ? '🏁 Session terminée' : '🏁 Partie terminée'"></span>
+                            <h2 class="qm-title-font mt-3" data-bind="text: isTraining() ? 'Belle session !' : 'Bravo, tu as terminé !'"></h2>
                             <h3 class="qm-muted" data-bind="text: scoreEvaluation"></h3>
 
                             <!-- Standard score -->
                             <h4 data-bind="visible: exerciseType() !== 'chrono' && exerciseType() !== 'sprint'">
-                                🌈 Ton score final : <strong data-bind="text: score"></strong>/<span data-bind="text: totalQuestions"></span>
+                                🌈 Ton score final : <strong data-bind="text: score"></strong>/<span data-bind="text: isUnlimitedTraining() ? totalAnswered() : totalQuestions()"></span>
                             </h4>
 
                             <!-- Chrono score -->
@@ -480,6 +505,7 @@ export class QuizViewModel extends BaseViewModel {
             const genOptions = {
                 count: QuizViewModel.NUMBER_OF_QUESTIONS,
                 table: this.table(),
+                tables: this.tables().length > 0 ? this.tables() : null,
                 maxFactor: this.maxFactor(),
             };
 
@@ -632,15 +658,37 @@ export class QuizViewModel extends BaseViewModel {
         const nextIndex = this.currentIndex() + 1;
         if (nextIndex < this.totalQuestions()) {
             this.currentIndex(nextIndex);
+        } else if (this.isUnlimitedTraining()) {
+            this.refillTrainingBatch();
         } else {
             this.finalizeQuiz();
         }
     }
 
+    private refillTrainingBatch() {
+        const op = this.currentOperation();
+        const exercise = this.exerciseType();
+        const genOptions = {
+            count: QuizViewModel.NUMBER_OF_QUESTIONS,
+            table: this.table(),
+            tables: this.tables().length > 0 ? this.tables() : null,
+            maxFactor: this.maxFactor(),
+        };
+        this.questions(generateQuestions(op, exercise, genOptions));
+        this.currentIndex(0);
+        this.userInput('');
+        this.lastAnswerFeedback('');
+    }
+
+    quitTraining = () => {
+        this.finalizeQuiz();
+    };
+
     private ensureChronoQuestionBuffer() {
         if (this.totalQuestions() - this.currentIndex() > 10) return;
         const extra = generateQuestions(this.currentOperation(), 'chrono', {
             count: QuizViewModel.CHRONO_BATCH_SIZE,
+            tables: this.tables().length > 0 ? this.tables() : null,
         });
         this.questions([...this.questions(), ...extra]);
     }
@@ -672,7 +720,9 @@ export class QuizViewModel extends BaseViewModel {
             this.isTraining()
         );
         const currentScore = this.score();
-        const currentTotal = this.totalQuestions();
+        const currentTotal = this.isUnlimitedTraining()
+            ? this.totalAnswered()
+            : this.totalQuestions();
         const previous = this.parseStoredScore(
             window.localStorage.getItem(key)
         );
@@ -749,7 +799,9 @@ export class QuizViewModel extends BaseViewModel {
     ): string {
         const base = `quiz-math-best:${exercise}:${op}:${isTraining ? 'training' : 'normal'}`;
         const table = this.table();
-        const suffix = isTraining && table !== null ? `:t${table}` : '';
+        const isMultiTable = this.tables().length > 1;
+        const suffix =
+            isTraining && table !== null && !isMultiTable ? `:t${table}` : '';
         return ProfileStore.scoreKey(`${base}${suffix}`);
     }
 

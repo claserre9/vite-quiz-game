@@ -325,6 +325,61 @@ a {
     box-shadow: 0 0 0 3px rgba(76, 117, 255, 0.4) !important;
 }
 
+/* Selected state for table cards in multi-select mode */
+.qm-table-card--selected {
+    outline: 3px solid var(--qm-secondary);
+    outline-offset: -1px;
+    background: rgba(76, 117, 255, 0.06) !important;
+}
+
+/* Checkbox overlay (top-right corner of card) */
+.qm-table-card-check {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    z-index: 2;
+}
+
+.qm-table-card-check .form-check-input {
+    width: 1.1rem;
+    height: 1.1rem;
+    cursor: pointer;
+}
+
+/* Tag-style table toggle buttons (training form) */
+.qm-table-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 2px solid rgba(83, 112, 142, 0.35);
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--qm-muted);
+    background: rgba(255, 255, 255, 0.6);
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.1s ease;
+    user-select: none;
+}
+
+.qm-table-tag:hover {
+    border-color: var(--qm-secondary);
+    color: var(--qm-secondary);
+    transform: translateY(-1px);
+}
+
+.qm-table-tag--active {
+    background: var(--qm-secondary);
+    border-color: var(--qm-secondary);
+    color: #fff;
+}
+
 .qm-feature-icon {
     display: inline-grid;
     place-items: center;

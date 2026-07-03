@@ -35,6 +35,7 @@ export interface Question {
 export interface GenerateOptions {
     count?: number;
     table?: number | null;
+    tables?: number[] | null;
     maxFactor?: number | null;
 }
 
@@ -48,33 +49,60 @@ export function generateQuestions(
     options: GenerateOptions = {}
 ): Question[] {
     const count = options.count ?? 20;
+    const tables = options.tables;
+
+    // When a tables array is given and no explicit table is set, use the first entry
+    const resolvedOptions: GenerateOptions =
+        tables && tables.length > 0 && options.table == null
+            ? { ...options, table: tables[0] }
+            : options;
+
+    // Multi-table: generate proportional batches per table then mix
+    if (
+        tables &&
+        tables.length > 1 &&
+        exercise !== 'sprint' &&
+        exercise !== 'table-gaps'
+    ) {
+        const perTable = Math.ceil(count / tables.length);
+        const all: Question[] = [];
+        for (const t of tables) {
+            const tableOpts: GenerateOptions = {
+                ...resolvedOptions,
+                table: t,
+                tables: null,
+                count: perTable,
+            };
+            all.push(...generateQuestions(op, exercise, tableOpts));
+        }
+        return shuffleArray(all).slice(0, count);
+    }
 
     switch (exercise) {
         case 'classic':
-            return shuffleArray(generateClassicQuestions(op, options)).slice(
-                0,
-                count
-            );
+            return shuffleArray(
+                generateClassicQuestions(op, resolvedOptions)
+            ).slice(0, count);
         case 'missing-number':
-            return generateMissingNumberQuestions(op, count, options);
+            return generateMissingNumberQuestions(op, count, resolvedOptions);
         case 'true-false':
-            return generateTrueFalseQuestions(op, count, options);
+            return generateTrueFalseQuestions(op, count, resolvedOptions);
         case 'comparison':
             return generateComparisonQuestions(count);
         case 'chrono':
-            return generateChronoQuestions(op, count, options);
+            return generateChronoQuestions(op, count, resolvedOptions);
         case 'sequence':
             return generateSequenceQuestions(count);
         case 'inverse':
-            return generateInverseQuestions(op, count, options);
+            return generateInverseQuestions(op, count, resolvedOptions);
         case 'duel':
-            return generateDuelQuestions(op, count, options);
+            return generateDuelQuestions(op, count, resolvedOptions);
         case 'free-input':
-            return generateFreeInputQuestions(op, options);
+            return generateFreeInputQuestions(op, resolvedOptions);
         case 'sprint':
-            return generateSprintQuestions(op, options);
+            return generateSprintQuestions(op, resolvedOptions);
         case 'table-gaps':
-            return generateTableGapsQuestions(op, options);
+            return generateTableGapsQuestions(op, resolvedOptions);
     }
 }
 
