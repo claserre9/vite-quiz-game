@@ -921,6 +921,79 @@ a {
     line-height: 1.2;
 }
 
+/* ── Question visuals (fractions, number line, arrays/groups) ──────── */
+
+.qm-visual-wrap {
+    padding: 0.9rem;
+    border-radius: 18px;
+    background: rgba(76, 117, 255, 0.06);
+}
+
+.qm-fraction-bar {
+    display: flex;
+    gap: 4px;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.qm-fraction-segment {
+    flex: 1;
+    height: 56px;
+    border-radius: 8px;
+    border: 2px solid var(--qm-secondary);
+    background: rgba(76, 117, 255, 0.08);
+}
+
+.qm-fraction-segment--filled {
+    background: linear-gradient(135deg, var(--qm-secondary), #7c9bff);
+}
+
+.qm-number-line {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+}
+
+.qm-number-line .qm-numberline-axis {
+    stroke: var(--qm-ink);
+}
+
+.qm-number-line .qm-numberline-tick {
+    stroke: var(--qm-muted);
+}
+
+.qm-number-line .qm-numberline-label {
+    fill: var(--qm-muted);
+}
+
+.qm-number-line .qm-numberline-point {
+    fill: var(--qm-primary);
+    stroke: #fff;
+}
+
+.qm-array-grid {
+    display: grid;
+    gap: 6px;
+    margin: 0 auto;
+    justify-content: center;
+}
+
+.qm-array-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--qm-accent), #34d399);
+}
+
+.qm-groups-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
 @media (max-width: 767px) {
     .qm-hero-card,
     .qm-quiz-card,

@@ -1,6 +1,6 @@
 # BaseViewModel API Documentation
 
-The `BaseViewModel` class is the core building block of the Knockout Page Vite application framework. It provides the foundation for creating view models that can be rendered to the DOM and bound with Knockout.js.
+The `BaseViewModel` class is the core building block of Quiz Math's internal view-model layer. It provides the foundation for creating view models that can be rendered to the DOM and bound with Knockout.js.
 
 ## Class Overview
 

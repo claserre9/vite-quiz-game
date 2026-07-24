@@ -1,6 +1,13 @@
 # Middleware Examples
 
-This document provides examples of common middleware patterns and usage for the Knockout Page Vite application.
+This document provides examples of common middleware patterns and usage for the Quiz Math.
+
+> **Note:** these are illustrative, hypothetical patterns for the underlying
+> routing/middleware system, not literal code from this repository — the
+> `ViewModel`s and services referenced below (e.g. `AdminViewModel`,
+> `LoginViewModel`, `ProductViewModel`) don't exist here. The app's actual
+> middleware is just `logPathMiddleware` and `profileGuard` in
+> `src/middlewares/middlewares.ts`.
 
 ## Basic Logging Middleware
 
@@ -609,4 +616,4 @@ export const routes = [
 ];
 ```
 
-These examples demonstrate various middleware patterns and usage for the Knockout Page Vite application. You can use these patterns as starting points for your own middleware implementations, combining and adapting them as needed for your specific requirements.
+These examples demonstrate various middleware patterns and usage for the Quiz Math. You can use these patterns as starting points for your own middleware implementations, combining and adapting them as needed for your specific requirements.

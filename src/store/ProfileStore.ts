@@ -1,3 +1,11 @@
+import {
+    readJson,
+    writeJson,
+    readString,
+    writeString,
+    removeItem,
+} from './LocalStorage';
+
 export interface Profile {
     id: string;
     name: string;
@@ -14,33 +22,58 @@ export interface ColorOption {
 }
 
 export const AVATARS = [
-    '🦁', '🐯', '🐻', '🐼', '🦊', '🐸',
-    '🦋', '🌟', '🚀', '🦄', '🐲', '🎈',
+    '🦁',
+    '🐯',
+    '🐻',
+    '🐼',
+    '🦊',
+    '🐸',
+    '🦋',
+    '🌟',
+    '🚀',
+    '🦄',
+    '🐲',
+    '🎈',
 ];
 
 export const COLORS: ColorOption[] = [
-    { id: 'blue',   label: 'Bleu',   gradient: 'linear-gradient(135deg, #4c75ff, #60a5fa)' },
-    { id: 'green',  label: 'Vert',   gradient: 'linear-gradient(135deg, #19c59a, #4ade80)' },
-    { id: 'orange', label: 'Orange', gradient: 'linear-gradient(135deg, #ff7a59, #ffb347)' },
-    { id: 'purple', label: 'Violet', gradient: 'linear-gradient(135deg, #a78bfa, #f472b6)' },
-    { id: 'red',    label: 'Rouge',  gradient: 'linear-gradient(135deg, #ff6b6b, #ff4757)' },
+    {
+        id: 'blue',
+        label: 'Bleu',
+        gradient: 'linear-gradient(135deg, #4c75ff, #60a5fa)',
+    },
+    {
+        id: 'green',
+        label: 'Vert',
+        gradient: 'linear-gradient(135deg, #19c59a, #4ade80)',
+    },
+    {
+        id: 'orange',
+        label: 'Orange',
+        gradient: 'linear-gradient(135deg, #ff7a59, #ffb347)',
+    },
+    {
+        id: 'purple',
+        label: 'Violet',
+        gradient: 'linear-gradient(135deg, #a78bfa, #f472b6)',
+    },
+    {
+        id: 'red',
+        label: 'Rouge',
+        gradient: 'linear-gradient(135deg, #ff6b6b, #ff4757)',
+    },
 ];
 
 const PROFILES_KEY = 'qm-profiles';
-const ACTIVE_KEY   = 'qm-active-profile';
+const ACTIVE_KEY = 'qm-active-profile';
 
 export class ProfileStore {
     static getProfiles(): Profile[] {
-        try {
-            const raw = localStorage.getItem(PROFILES_KEY);
-            return raw ? (JSON.parse(raw) as Profile[]) : [];
-        } catch {
-            return [];
-        }
+        return readJson<Profile[]>(PROFILES_KEY) ?? [];
     }
 
     static saveProfiles(profiles: Profile[]): void {
-        localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+        writeJson(PROFILES_KEY, profiles);
     }
 
     static createProfile(data: Omit<Profile, 'id' | 'createdAt'>): Profile {
@@ -61,7 +94,7 @@ export class ProfileStore {
     }
 
     static getActiveProfileId(): string | null {
-        return localStorage.getItem(ACTIVE_KEY);
+        return readString(ACTIVE_KEY);
     }
 
     static getActiveProfile(): Profile | null {
@@ -71,11 +104,11 @@ export class ProfileStore {
     }
 
     static setActiveProfile(id: string): void {
-        localStorage.setItem(ACTIVE_KEY, id);
+        writeString(ACTIVE_KEY, id);
     }
 
     static clearActiveProfile(): void {
-        localStorage.removeItem(ACTIVE_KEY);
+        removeItem(ACTIVE_KEY);
     }
 
     /** Returns a localStorage key scoped to the active profile. */
@@ -85,6 +118,8 @@ export class ProfileStore {
     }
 
     static getColorGradient(colorId: string): string {
-        return COLORS.find((c) => c.id === colorId)?.gradient ?? COLORS[0].gradient;
+        return (
+            COLORS.find((c) => c.id === colorId)?.gradient ?? COLORS[0].gradient
+        );
     }
 }

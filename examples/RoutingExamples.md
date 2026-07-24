@@ -1,6 +1,12 @@
 # Routing Examples
 
-This document provides examples of common routing patterns and configurations for the Knockout Page Vite application.
+This document provides examples of common routing patterns and configurations for the Quiz Math.
+
+> **Note:** these are illustrative, hypothetical patterns for the underlying
+> routing system, not literal code from this repository — the `ViewModel`s
+> referenced below (e.g. `HomeViewModel`, `AdminViewModel`, `DashboardViewModel`,
+> `ProductViewModel`) don't exist here. For the app's real routes, see
+> `src/routes/routes.ts` and `docs/api/Routing.md`.
 
 ## Basic Routes
 
@@ -455,4 +461,4 @@ export class ProductListViewModel extends BaseViewModel {
 }
 ```
 
-These examples demonstrate various routing patterns and configurations for the Knockout Page Vite application. You can use these patterns as starting points for your own routing setup, combining and adapting them as needed for your specific requirements.
+These examples demonstrate various routing patterns and configurations for the Quiz Math. You can use these patterns as starting points for your own routing setup, combining and adapting them as needed for your specific requirements.

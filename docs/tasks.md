@@ -1,108 +1,67 @@
-# Knockout Page Vite - Improvement Tasks
+# Quiz Math — Improvement Tasks
 
-This document contains a comprehensive list of improvement tasks for the Knockout Page Vite project. Each task is marked with a checkbox that can be checked off when completed.
+A real, current backlog for the project (previously this file described a
+generic, fictional framework roadmap unrelated to what's actually in this
+repo — see git history if curious). Checked items are genuinely done.
 
-## Architecture and Structure
+## Done
 
-1. [x] Implement a proper state management solution
-    - [x] Create a centralized store for application state
-    - [x] Add support for computed properties and state derivation
-    - [x] Implement proper state persistence (localStorage/sessionStorage)
+- [x] Local, no-login kid profiles (`ProfileStore`) with per-profile best
+      scores and sprint times
+- [x] 20 exercise types across addition/subtraction/multiplication/division,
+      including visual-aid exercises (fractions, number line, operation
+      sense) rendered via a generic `Question.visual` field
+- [x] "Weak facts" adaptive practice: per-fact wrong/correct tracking
+      (`WeakFactsStore`) biasing question generation toward facts a kid
+      struggles with
+- [x] Category-based exercise picker in Training mode (Calcul / Sens des
+      nombres / Rapidité / Logique), replacing a flat 17+ item dropdown
+- [x] Table selection only shown for the 4 exercises that actually use it
+- [x] `QuizViewModel` split from a single 890-line file into focused pieces
+      (template, timers, score persistence, JSON loader, table-grid
+      computation)
+- [x] Removed the unused generic demo framework (fake login/dashboard/admin,
+      `AppStore`, `FormViewModel` + its two demo forms) that shipped with the
+      original starter template
+- [x] Consistent `localStorage` persistence: all stores (`ProfileStore`,
+      `WeakFactsStore`, `QuizScoreStore`) go through one shared
+      `src/store/LocalStorage.ts` helper
+- [x] Fixed `npm run lint` (was pointing at a legacy `.eslintrc.cjs`
+      incompatible with ESLint 9's flat-config mode)
+- [x] Docs aligned with the app that actually exists in this repo, instead of
+      the generic framework starter's original documentation
 
-2. [ ] Enhance component architecture
-    - [ ] Create a component registry for better organization
-    - [ ] Implement a more robust component lifecycle management
-    - [ ] Add support for component composition and nesting
+## Open
 
-3. [ ] Improve routing system
-    - [x] Implement nested routes for more complex UIs
-    - [x] Add route guards for authentication and authorization
-    - [ ] Support for route-specific data loading
+### Architecture / code quality
 
-4. [ ] Enhance middleware system
-    - [ ] Create middleware for authentication
-    - [ ] Add error handling middleware
-    - [ ] Implement logging middleware with different log levels
-    - [ ] Create middleware for analytics tracking
+- [ ] Type-safe template bindings — `data-bind` attributes are plain strings
+      with zero compile-time checking; a typo silently fails at runtime.
+      Biggest real gap in the internal view-model layer.
+- [ ] Auto-dispose Knockout subscriptions on `BaseViewModel.destroy()` — a
+      `registerSubscription()` helper would close a real memory-leak risk for
+      ViewModels that `.subscribe()` manually in their constructor (e.g.
+      `QuizViewModel`)
+- [ ] Real test coverage for view models — only `AppViewModel` has a test
+      today; `tests/knockout-test-utils.ts` exists but is barely used
+- [ ] Wire `npm run lint` and `tsc --noEmit` into CI (`.github/workflows/ci.yml`
+      currently only runs `npm test`)
+- [ ] Typed route params (e.g. infer `{ operation: string }` from
+      `/quiz/:operation` instead of an untyped `context.params`)
 
-## Code Quality and Development Experience
+### Features (quiz content)
 
-5. [x] Improve TypeScript configuration
-    - [x] Add path aliases for cleaner imports
-    - [x] Configure source maps for better debugging
-    - [x] Implement stricter type checking for templates
+- [ ] Progress dashboard per profile — accuracy trends over time by
+      operation/table (today only a single best-score label is kept)
+- [ ] Achievements & streak counter (perfect sprint, N-day streak, table
+      mastered)
+- [ ] PWA offline support (manifest + service worker)
+- [ ] Geometry exercises (lines, angles, polygons, tiling) and a clock-face
+      UI for telling time — needs real shape/clock rendering, not just the
+      simple SVG/HTML visuals already built for fractions/number-line/arrays
 
-6. [x] Set up comprehensive linting and formatting
-    - [x] Add ESLint with appropriate rules
-    - [x] Configure Prettier for consistent code formatting
-    - [x] Add pre-commit hooks for code quality checks
+### Housekeeping
 
-7. [x] Implement testing infrastructure
-    - [x] Set up Jest or Vitest for unit testing
-    - [x] Add testing utilities for Knockout components
-    - [x] Implement E2E testing with Cypress or Playwright
-    - [x] Set up test coverage reporting
-
-8. [ ] Enhance error handling
-    - [ ] Create a global error boundary
-    - [ ] Implement structured error logging
-    - [ ] Add user-friendly error messages and recovery options
-
-## Performance and Optimization
-
-9. [ ] Implement code splitting and lazy loading
-    - [ ] Set up dynamic imports for route components
-    - [ ] Configure Vite for optimal chunk splitting
-    - [ ] Add prefetching for common routes
-
-10. [ ] Optimize build process
-    - [ ] Configure environment-specific builds
-    - [ ] Implement proper asset optimization
-    - [ ] Add bundle analysis tools
-
-11. [ ] Enhance runtime performance
-    - [ ] Implement virtualization for large lists
-    - [ ] Add performance monitoring
-    - [ ] Optimize Knockout bindings for better rendering performance
-
-## User Experience and Features
-
-12. [ ] Improve UI/UX
-    - [ ] Add a responsive design system
-    - [ ] Implement proper loading states
-    - [ ] Create consistent error states and messages
-
-13. [ ] Add accessibility features
-    - [ ] Ensure proper ARIA attributes
-    - [ ] Implement keyboard navigation
-    - [ ] Add screen reader support
-
-14. [x] Enhance form handling
-    - [x] Create reusable form components
-    - [x] Implement form validation
-    - [x] Add support for complex form workflows
-
-## Documentation and Maintenance
-
-15. [x] Improve documentation
-    - [x] Create comprehensive API documentation
-    - [x] Add usage examples and patterns
-    - [x] Document architecture decisions
-
-16. [x] Set up CI/CD pipeline
-    - [x] Configure GitHub Actions or similar CI tool
-    - [x] Implement automated testing in CI
-    - [x] Set up automated deployments
-
-17. [x] Enhance project structure
-    - [x] Reorganize files for better discoverability
-    - [x] Add proper README with setup instructions
-    - [x] Create CONTRIBUTING.md with guidelines
-
-## Security
-
-18. [ ] Implement security best practices
-    - [ ] Add Content Security Policy
-    - [ ] Implement proper authentication and authorization
-    - [ ] Add protection against common web vulnerabilities
-    - [ ] Set up security scanning in CI pipeline
+- [ ] Decide on a license (no `LICENSE` file currently exists despite one
+      being referenced historically) and add it, or drop the reference for
+      good

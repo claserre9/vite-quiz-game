@@ -1,6 +1,11 @@
-# Knockout Page Vite Documentation
+# Quiz Math — Internal Framework Documentation
 
-Welcome to the documentation for the Knockout Page Vite application framework. This documentation will help you understand the architecture, API, and usage patterns of the framework.
+Quiz Math is a French-language math practice game for kids (see the root
+[README](../README.md) for what the app actually does). It's built on a small
+internal MVVM layer — this documentation covers _that_ layer: the
+`BaseViewModel` base class, the page.js-based router, and the middleware
+system. It's not a general-purpose framework package; these patterns exist
+only inside this app.
 
 ## Quick Start Guide
 
@@ -9,8 +14,8 @@ Welcome to the documentation for the Knockout Page Vite application framework. T
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/knockout-page-vite.git
-    cd knockout-page-vite
+    git clone <this-repo-url>
+    cd vite-quiz-game
     ```
 
 2. Install dependencies:
@@ -50,7 +55,7 @@ Welcome to the documentation for the Knockout Page Vite application framework. T
         }
 
         public changeMessage = (): void => {
-            this.message('Hello, Knockout Page Vite!');
+            this.message('Hello from Quiz Math!');
         };
     }
     ```
@@ -136,7 +141,7 @@ Middleware functions can be used to:
 - Use Knockout observables for reactive state
 - Consider service singletons for shared state
 - Use the route context to pass state between routes
-- Persist global data using the built-in observable store in `src/store`
+- Persist state that must survive a reload in `localStorage`, via a small static-class store under `src/store` built on `src/store/LocalStorage.ts` (see [Architecture Documentation](architecture/README.md#persisted-stores))
 
 ### Error Handling
 
@@ -147,7 +152,3 @@ Middleware functions can be used to:
 ## Contributing
 
 Please see the [CONTRIBUTING.md](../CONTRIBUTING.md) file for guidelines on how to contribute to the project.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.

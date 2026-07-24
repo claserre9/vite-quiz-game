@@ -1,6 +1,6 @@
 # Middleware System API Documentation
 
-The middleware system in Knockout Page Vite provides a way to intercept and process route requests before they reach their handlers. This allows for cross-cutting concerns like logging, authentication, and data loading to be handled separately from the route handlers.
+The middleware system in Quiz Math provides a way to intercept and process route requests before they reach their handlers. This allows for cross-cutting concerns like logging and guarding routes to be handled separately from the route handlers.
 
 ## Middleware Pattern
 
@@ -31,6 +31,22 @@ export function logPathMiddleware(
         'color: white; background-color: blue; padding: 4px; border-radius: 4px;'
     );
     next();
+}
+```
+
+### profileGuard
+
+Redirects to the profile picker (`/profils`) if no local kid profile is
+currently active; used on the routes that need one (`/`, `/entrainement`,
+`/tables`, `/quiz/:operation`):
+
+```typescript
+export function profileGuard(_context: PageJS.Context, next: () => void): void {
+    if (ProfileStore.getActiveProfile()) {
+        next();
+    } else {
+        page.redirect('/profils');
+    }
 }
 ```
 

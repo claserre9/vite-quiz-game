@@ -1,6 +1,6 @@
 # View Model Patterns
 
-This document provides examples of common patterns for creating and using view models in the Knockout Page Vite application.
+This document provides examples of common patterns for creating and using view models in the Quiz Math.
 
 ## Basic View Model
 
@@ -132,7 +132,7 @@ Handling form input and submission:
 import { BaseViewModel } from '../core/BaseViewModel';
 import * as ko from 'knockout';
 
-export class ContactFormViewModel extends BaseViewModel {
+export class FeedbackFormViewModel extends BaseViewModel {
     // Form fields
     public name = ko.observable<string>('');
     public email = ko.observable<string>('');
@@ -390,4 +390,4 @@ export class LifecycleViewModel extends BaseViewModel {
 }
 ```
 
-These examples demonstrate various patterns for creating view models in the Knockout Page Vite application. You can use these patterns as starting points for your own view models, combining and adapting them as needed for your specific requirements.
+These examples demonstrate various patterns for creating view models in the Quiz Math. You can use these patterns as starting points for your own view models, combining and adapting them as needed for your specific requirements.

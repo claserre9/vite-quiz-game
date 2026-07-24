@@ -1,4 +1,4 @@
-# Contributing to Knockout Page Vite
+# Contributing to Quiz Math
 
 Thanks for taking the time to contribute!
 

@@ -1,10 +1,10 @@
 # Architecture Documentation
 
-This document describes the architecture of the Knockout Page Vite application, including the component lifecycle, routing flow, and state management approach.
+This document describes the architecture of Quiz Math's internal MVVM layer, including the component lifecycle, routing flow, and state management approach.
 
 ## Overall Architecture
 
-The Knockout Page Vite application is built on the following key technologies:
+Quiz Math is built on the following key technologies:
 
 - **Knockout.js**: A MVVM (Model-View-ViewModel) framework for creating rich, responsive UIs with a clean underlying data model
 - **Page.js**: A client-side routing library for single page applications
@@ -222,24 +222,28 @@ For shared state between components, the application can use several approaches:
     const user = JSON.parse(localStorage.getItem('user'));
     ```
 
-### Centralized Store
+### Persisted Stores
 
-A lightweight observable store is provided in `src/store`. It keeps global
-application state in a single Knockout observable and automatically persists
-changes to `localStorage` by default. Derived state can be defined using the
-store's `computed` helper:
+Shared state that needs to survive a page reload is kept in `localStorage`
+via small static-class stores under `src/store`, all built on the same
+`src/store/LocalStorage.ts` helper (`readString`/`writeString`/`readJson`/
+`writeJson`/`removeItem` — one shared "is storage available" guard and JSON
+parse/stringify error handling, instead of every store repeating its own):
 
 ```typescript
-import { appStore, isAuthenticated } from '@store/AppStore';
+import { ProfileStore } from '@store/ProfileStore';
+import { WeakFactsStore } from '@store/WeakFactsStore';
+import { QuizScoreStore } from '@store/QuizScoreStore';
 
-// Access or update state
-appStore.setState({ authToken: 'demo' });
-
-// Derived value
-if (isAuthenticated()) {
-    // user is logged in
-}
+// Each store exposes plain static methods — no shared reactive container
+ProfileStore.getActiveProfile();
+WeakFactsStore.recordResult('multiplication', '7:8', false);
+QuizScoreStore.saveBestScore(/* ... */);
 ```
+
+`ProfileStore.scoreKey(baseKey)` scopes a key to the active local profile, so
+`WeakFactsStore` and `QuizScoreStore` keys never collide between profiles on
+the same device.
 
 ## Data Flow
 

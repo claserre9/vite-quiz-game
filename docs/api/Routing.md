@@ -1,6 +1,6 @@
 # Routing System API Documentation
 
-The routing system in Knockout Page Vite is built on top of [page.js](https://github.com/visionmedia/page.js), a small client-side routing library. This document describes the routing configuration and usage within the application.
+Quiz Math's routing system is built on top of [page.js](https://github.com/visionmedia/page.js), a small client-side routing library. This document describes the routing configuration and usage within the application.
 
 ## Route Configuration
 
@@ -102,38 +102,40 @@ While page.js doesn't natively support nested routes, you can implement them by 
 ```typescript
 // Parent route
 {
-    path: "/dashboard",
-    handler: (context) => renderView(DashboardViewModel, context)
+    path: "/settings",
+    handler: (context) => renderView(SettingsViewModel, context)
 },
 // Child routes
 {
-    path: "/dashboard/profile",
-    handler: (context) => renderView(ProfileViewModel, context)
+    path: "/settings/profile",
+    handler: (context) => renderView(SettingsProfileViewModel, context)
 },
 {
-    path: "/dashboard/settings",
-    handler: (context) => renderView(SettingsViewModel, context)
+    path: "/settings/preferences",
+    handler: (context) => renderView(SettingsPreferencesViewModel, context)
 }
 ```
 
 ## Route Guards
 
-Route guards can be implemented using middleware:
+Route guards can be implemented using middleware. This app's own `profileGuard`
+(in `src/middlewares/middlewares.ts`) is a real example — it redirects to the
+profile picker when no local profile is active yet:
 
 ```typescript
-function authGuard(context: PageJS.Context, next: () => void): void {
-    if (isAuthenticated()) {
+export function profileGuard(_context: PageJS.Context, next: () => void): void {
+    if (ProfileStore.getActiveProfile()) {
         next(); // Continue to the route handler
     } else {
-        page.redirect('/login'); // Redirect to login page
+        page.redirect('/profils'); // No active profile yet
     }
 }
 
-// Apply the guard to protected routes
+// Applied to protected routes
 {
-    path: "/admin",
-    middleware: [authGuard],
-    handler: (context) => renderView(AdminViewModel, context)
+    path: "/entrainement",
+    middleware: [profileGuard],
+    handler: (context) => renderView(TrainingViewModel, context)
 }
 ```
 
