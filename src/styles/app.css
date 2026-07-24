@@ -321,6 +321,18 @@ a {
     background-clip: text;
 }
 
+.qm-feature-card[data-tone='soustraction'] .qm-table-number {
+    background: linear-gradient(135deg, #ffb347, #ffd86b);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.qm-feature-card[data-tone='division'] .qm-table-number {
+    background: linear-gradient(135deg, #f472b6, #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
 .active-tab {
     box-shadow: 0 0 0 3px rgba(76, 117, 255, 0.4) !important;
 }

@@ -186,20 +186,22 @@ export class QuizViewModel extends BaseViewModel {
 
         this.setTemplate(this.getTemplate());
 
-        this.currentIndex.subscribe(() => {
-            if (this.quizFinished()) return;
-            if (this.exerciseType() === 'chrono') {
-                this.ensureChronoQuestionBuffer();
-                return;
-            }
-            if (
-                !this.isTraining() &&
-                !this.isFreeInput() &&
-                this.exerciseType() !== 'sprint'
-            ) {
-                this.startPerQuestionTimer();
-            }
-        });
+        this.registerSubscription(
+            this.currentIndex.subscribe(() => {
+                if (this.quizFinished()) return;
+                if (this.exerciseType() === 'chrono') {
+                    this.ensureChronoQuestionBuffer();
+                    return;
+                }
+                if (
+                    !this.isTraining() &&
+                    !this.isFreeInput() &&
+                    this.exerciseType() !== 'sprint'
+                ) {
+                    this.startPerQuestionTimer();
+                }
+            })
+        );
 
         void this.loadQuestions();
     }

@@ -7,10 +7,25 @@ export class BaseViewModel {
     protected isSubTemplate = false;
     protected templateName: string;
     protected isDestroyed = false;
+    private subscriptions: KnockoutSubscription[] = [];
 
     constructor(context: PageJS.Context | undefined = undefined) {
         this.context = context;
         this.templateName = this.constructor.name;
+    }
+
+    /**
+     * Registers a Knockout subscription (e.g. `observable.subscribe(...)`) for automatic
+     * disposal when this view model is destroyed. Only bindings applied via `data-bind` are
+     * cleaned up automatically by `cleanNode`; manual subscriptions are not, and leak otherwise.
+     * @param subscription - The subscription to dispose on destroy.
+     * @returns The same subscription, so this can wrap a `.subscribe(...)` call inline.
+     */
+    protected registerSubscription(
+        subscription: KnockoutSubscription
+    ): KnockoutSubscription {
+        this.subscriptions.push(subscription);
+        return subscription;
     }
 
     /**
@@ -63,6 +78,9 @@ export class BaseViewModel {
      */
     public destroy(): void {
         if (this.isDestroyed) return;
+
+        this.subscriptions.forEach((subscription) => subscription.dispose());
+        this.subscriptions = [];
 
         if (!this.selector) {
             console.error(

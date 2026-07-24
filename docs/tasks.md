@@ -30,6 +30,17 @@ repo — see git history if curious). Checked items are genuinely done.
       incompatible with ESLint 9's flat-config mode)
 - [x] Docs aligned with the app that actually exists in this repo, instead of
       the generic framework starter's original documentation
+- [x] Wire `npm run lint` and `tsc --noEmit` into CI (`.github/workflows/ci.yml`)
+- [x] Auto-dispose Knockout subscriptions on `BaseViewModel.destroy()` via a
+      `registerSubscription()` helper — migrated the only two manual
+      `.subscribe()` calls in the codebase (`QuizViewModel`, `TablesViewModel`)
+- [x] Typed route params — `src/routes/typedRoute.ts`'s `route()` factory
+      infers `:param` names from the path's literal type, so a typo like
+      `context.params.operaton` is now a compile error
+- [x] Test coverage for the domain logic, persistence layer, and base
+      view-model lifecycle: `QuestionGenerator.ts` (99%), `src/store/*` (99%),
+      `BaseViewModel`/`QuizTimers` — 8 test files / 74 tests, up from 1 file /
+      1 test
 
 ## Open
 
@@ -37,17 +48,12 @@ repo — see git history if curious). Checked items are genuinely done.
 
 - [ ] Type-safe template bindings — `data-bind` attributes are plain strings
       with zero compile-time checking; a typo silently fails at runtime.
-      Biggest real gap in the internal view-model layer.
-- [ ] Auto-dispose Knockout subscriptions on `BaseViewModel.destroy()` — a
-      `registerSubscription()` helper would close a real memory-leak risk for
-      ViewModels that `.subscribe()` manually in their constructor (e.g.
-      `QuizViewModel`)
-- [ ] Real test coverage for view models — only `AppViewModel` has a test
-      today; `tests/knockout-test-utils.ts` exists but is barely used
-- [ ] Wire `npm run lint` and `tsc --noEmit` into CI (`.github/workflows/ci.yml`
-      currently only runs `npm test`)
-- [ ] Typed route params (e.g. infer `{ operation: string }` from
-      `/quiz/:operation` instead of an untyped `context.params`)
+      The one remaining real gap in the internal view-model layer.
+- [ ] Test coverage for the actual view models (`QuizViewModel`,
+      `TrainingViewModel`, `TablesViewModel` are still at 0%) — the domain
+      logic and persistence layer are well covered now, but the DOM/timer-heavy
+      ViewModels themselves aren't. `tests/knockout-test-utils.ts` exists for
+      this and is barely used.
 
 ### Features (quiz content)
 

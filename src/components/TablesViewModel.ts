@@ -3,7 +3,21 @@ import { url } from '@core/url';
 import { observable, observableArray, pureComputed } from 'knockout';
 import { ProfileStore } from '@store/ProfileStore';
 
-type TableOp = 'addition' | 'multiplication';
+type TableOp = 'addition' | 'soustraction' | 'multiplication' | 'division';
+
+const OP_SYMBOLS: Record<TableOp, string> = {
+    addition: '+',
+    soustraction: '−',
+    multiplication: '×',
+    division: '÷',
+};
+
+const OP_SECTION_TITLES: Record<TableOp, string> = {
+    addition: "Tables d'addition",
+    soustraction: 'Tables de soustraction',
+    multiplication: 'Tables de multiplication',
+    division: 'Tables de division',
+};
 
 export class TablesViewModel extends BaseViewModel {
     op = observable<TableOp>('addition');
@@ -12,11 +26,19 @@ export class TablesViewModel extends BaseViewModel {
 
     hasSelection = pureComputed(() => this.selectedTables().length > 0);
 
+    sectionTitle = pureComputed(() => OP_SECTION_TITLES[this.op()]);
+
     constructor(context: PageJS.Context | undefined) {
         super(context);
         // Clear selection when switching operation
-        this.op.subscribe(() => this.selectedTables([]));
+        this.registerSubscription(
+            this.op.subscribe(() => this.selectedTables([]))
+        );
         this.setTemplate(this.getTemplate());
+    }
+
+    opSymbol(op: TableOp): string {
+        return OP_SYMBOLS[op];
     }
 
     getBestScoreLabel(op: TableOp, t: number): string {
@@ -106,12 +128,16 @@ export class TablesViewModel extends BaseViewModel {
                     <button class="btn qm-btn px-4 py-2"
                             data-bind="click: function(){ op('addition'); }, css: { 'active-tab': op() === 'addition' }">➕ Addition</button>
                     <button class="btn qm-btn-secondary px-4 py-2"
+                            data-bind="click: function(){ op('soustraction'); }, css: { 'active-tab': op() === 'soustraction' }">➖ Soustraction</button>
+                    <button class="btn qm-btn-secondary px-4 py-2"
                             data-bind="click: function(){ op('multiplication'); }, css: { 'active-tab': op() === 'multiplication' }">✖️ Multiplication</button>
+                    <button class="btn qm-btn-secondary px-4 py-2"
+                            data-bind="click: function(){ op('division'); }, css: { 'active-tab': op() === 'division' }">➗ Division</button>
                 </div>
 
                 <!-- Section title -->
                 <h2 class="qm-section-title text-center mb-3" style="font-size:1.1rem;"
-                    data-bind="text: op() === 'addition' ? 'Tables d\\'addition' : 'Tables de multiplication'"></h2>
+                    data-bind="text: sectionTitle"></h2>
 
                 <!-- Multi-select toolbar -->
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-3 justify-content-center">
@@ -141,7 +167,7 @@ export class TablesViewModel extends BaseViewModel {
                             <div class="card-body d-flex flex-column align-items-center justify-content-center text-center p-3">
                                 <div class="qm-table-number" data-bind="text: $data"></div>
                                 <div class="qm-muted small mt-1"
-                                     data-bind="text: 'Table de ' + $data + ' ' + ($root.op() === 'addition' ? '+' : '×')"></div>
+                                     data-bind="text: 'Table de ' + $data + ' ' + $root.opSymbol($root.op())"></div>
                                 <span class="qm-badge-soft mt-2"
                                       data-bind="text: $root.getBestScoreLabel($root.op(), $data),
                                                  style: { opacity: $root.getBestScoreLabel($root.op(), $data).startsWith('Pas') ? '0.45' : '1' }"></span>

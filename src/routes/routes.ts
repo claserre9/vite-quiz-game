@@ -8,6 +8,7 @@ import { TrainingViewModel } from '@components/TrainingViewModel';
 import { TablesViewModel } from '@components/TablesViewModel';
 import { ProfileSelectorViewModel } from '@components/ProfileSelectorViewModel';
 import { ProfileCreateViewModel } from '@components/ProfileCreateViewModel';
+import { route } from './typedRoute';
 
 /**
  * Route configuration interface
@@ -27,47 +28,31 @@ export const globalMiddleware = [logPathMiddleware];
  * Application routes configuration
  */
 export const routes: RouteConfig[] = [
-    {
-        path: '/profils',
-        handler: (context) => renderView(ProfileSelectorViewModel, context),
-    },
-    {
-        path: '/profils/nouveau',
-        handler: (context) => renderView(ProfileCreateViewModel, context),
-    },
-    {
-        path: '/',
-        middleware: [profileGuard],
-        handler: (context) => renderView(AppViewModel, context),
-    },
-    {
-        path: '/a-propos',
-        handler: (context) => renderView(AboutViewModel, context),
-    },
-    {
-        path: '/about',
-        handler: (context) => renderView(AboutViewModel, context),
-    },
-    {
-        path: '/entrainement',
-        middleware: [profileGuard],
-        handler: (context) => renderView(TrainingViewModel, context),
-    },
-    {
-        path: '/tables',
-        middleware: [profileGuard],
-        handler: (context) => renderView(TablesViewModel, context),
-    },
-    {
-        path: '/quiz/:operation',
-        middleware: [profileGuard],
-        handler: (context) => renderView(QuizViewModel, context),
-    },
-    {
+    route('/profils', (context) =>
+        renderView(ProfileSelectorViewModel, context)
+    ),
+    route('/profils/nouveau', (context) =>
+        renderView(ProfileCreateViewModel, context)
+    ),
+    route('/', (context) => renderView(AppViewModel, context), [profileGuard]),
+    route('/a-propos', (context) => renderView(AboutViewModel, context)),
+    route('/about', (context) => renderView(AboutViewModel, context)),
+    route(
+        '/entrainement',
+        (context) => renderView(TrainingViewModel, context),
+        [profileGuard]
+    ),
+    route('/tables', (context) => renderView(TablesViewModel, context), [
+        profileGuard,
+    ]),
+    route('/quiz/:operation', (context) => renderView(QuizViewModel, context), [
+        profileGuard,
+    ]),
+    route(
         // Catch-all route for 404 pages
-        path: '*',
-        handler: () => renderView(NotFoundViewModel),
-    },
+        '*',
+        () => renderView(NotFoundViewModel)
+    ),
 ];
 
 /**
@@ -82,13 +67,17 @@ export const registerRoutes = (page: PageJS.Static): void => {
     });
 
     // Register all routes
-    routes.forEach((route) => {
-        if (route.middleware && route.middleware.length > 0) {
+    routes.forEach((routeConfig) => {
+        if (routeConfig.middleware && routeConfig.middleware.length > 0) {
             // If a route has specific middleware, register it
-            page(route.path, ...route.middleware, route.handler);
+            page(
+                routeConfig.path,
+                ...routeConfig.middleware,
+                routeConfig.handler
+            );
         } else {
             // Otherwise register the route handler
-            page(route.path, route.handler);
+            page(routeConfig.path, routeConfig.handler);
         }
     });
 
