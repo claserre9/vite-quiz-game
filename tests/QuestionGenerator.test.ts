@@ -224,6 +224,55 @@ describe('generateQuestions', () => {
         questions.forEach(assertValidQuestion);
     });
 
+    it('restricts a "general" session to the requested subset of operations', () => {
+        for (const exercise of [
+            'chrono',
+            'duel',
+            'missing-number',
+            'true-false',
+            'inverse',
+            'free-input',
+        ] as ExerciseType[]) {
+            const questions = generateQuestions('general', exercise, {
+                count: 30,
+                table: 7,
+                maxFactor: 10,
+                operations: ['addition', 'multiplication'],
+            });
+            expect(questions.length).toBeGreaterThan(0);
+            questions.forEach(assertValidQuestion);
+            for (const q of questions) {
+                if (!q.fact) continue;
+                expect(['addition', 'multiplication']).toContain(q.fact.op);
+            }
+        }
+    });
+
+    it('treats a single-entry operations subset the same as passing that operation directly', () => {
+        const questions = generateQuestions('general', 'missing-number', {
+            count: 20,
+            maxFactor: 10,
+            operations: ['division'],
+        });
+        expect(questions.length).toBeGreaterThan(0);
+        for (const q of questions) {
+            expect(q.fact?.op).toBe('division');
+        }
+    });
+
+    it('sprint and table-gaps ignore multi-operation mixing and just use the first requested operation', () => {
+        for (const exercise of ['sprint', 'table-gaps'] as ExerciseType[]) {
+            const questions = generateQuestions('general', exercise, {
+                table: 4,
+                maxFactor: 10,
+                operations: ['soustraction', 'multiplication'],
+            });
+            expect(questions.map((q) => q.question)).toEqual(
+                Array.from({ length: 10 }, (_, i) => `${4 + (i + 1)} − 4 = ?`)
+            );
+        }
+    });
+
     it('only exposes a fact for the 4 exercises that actually use table/tables (classic, free-input, sprint, table-gaps)', () => {
         // Sanity-check the docs/tasks.md claim by asking every exercise for table=2 vs table=9
         // and confirming only those four produce different output.

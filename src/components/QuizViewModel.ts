@@ -42,6 +42,7 @@ export class QuizViewModel extends BaseViewModel {
     public isTraining = observable(false);
     public table = observable<number | null>(null);
     public tables = observableArray<number>([]);
+    public operations = observableArray<Exclude<Operation, 'general'>>([]);
     public maxFactor = observable<number | null>(null);
     public timeLeft = observable(QuizViewModel.TIME_LEFT);
     public exerciseType = observable<ExerciseType>('classic');
@@ -155,9 +156,24 @@ export class QuizViewModel extends BaseViewModel {
         const params = new URLSearchParams(context?.querystring || '');
         const tableParam = params.get('table');
         const tablesParam = params.get('tables');
+        const operationsParam = params.get('operations');
         const maxFactorParam = params.get('maxFactor');
 
         this.isTraining(params.get('mode') === 'training');
+
+        if (operationsParam) {
+            const validOps = (OPERATIONS as readonly string[]).filter(
+                (o) => o !== 'general'
+            );
+            this.operations(
+                operationsParam
+                    .split(',')
+                    .filter((o) => validOps.includes(o)) as Exclude<
+                    Operation,
+                    'general'
+                >[]
+            );
+        }
 
         if (tablesParam) {
             const parsed = tablesParam
@@ -304,7 +320,7 @@ export class QuizViewModel extends BaseViewModel {
             this.userInput('');
             this.lastAnswerFeedback('');
             this.headline(
-                op === 'general'
+                op === 'general' && this.operations().length === 0
                     ? EXERCISE_LABELS[exercise]
                     : `${EXERCISE_LABELS[exercise]} - ${this.getOperationLabel(op)}`
             );
@@ -330,6 +346,8 @@ export class QuizViewModel extends BaseViewModel {
                 count: QuizViewModel.NUMBER_OF_QUESTIONS,
                 table: this.table(),
                 tables: this.tables().length > 0 ? this.tables() : null,
+                operations:
+                    this.operations().length > 0 ? this.operations() : null,
                 maxFactor: this.maxFactor(),
                 factRecords: this.buildFactRecords(op),
             };
@@ -337,7 +355,7 @@ export class QuizViewModel extends BaseViewModel {
             if (this.isTraining()) {
                 this.questions(generateQuestions(op, exercise, genOptions));
                 this.headline(
-                    op === 'general'
+                    op === 'general' && this.operations().length === 0
                         ? `${EXERCISE_LABELS[exercise]} - Entraînement`
                         : `${EXERCISE_LABELS[exercise]} - ${this.getOperationLabel(op)}`
                 );
@@ -467,6 +485,7 @@ export class QuizViewModel extends BaseViewModel {
             count: QuizViewModel.NUMBER_OF_QUESTIONS,
             table: this.table(),
             tables: this.tables().length > 0 ? this.tables() : null,
+            operations: this.operations().length > 0 ? this.operations() : null,
             maxFactor: this.maxFactor(),
             factRecords: this.buildFactRecords(op),
         };
@@ -485,6 +504,7 @@ export class QuizViewModel extends BaseViewModel {
         const extra = generateQuestions(this.currentOperation(), 'chrono', {
             count: QuizViewModel.CHRONO_BATCH_SIZE,
             tables: this.tables().length > 0 ? this.tables() : null,
+            operations: this.operations().length > 0 ? this.operations() : null,
             factRecords: this.buildFactRecords(this.currentOperation()),
         });
         this.questions([...this.questions(), ...extra]);
@@ -579,7 +599,13 @@ export class QuizViewModel extends BaseViewModel {
         if (op === 'soustraction') return 'Soustraction';
         if (op === 'multiplication') return 'Multiplication';
         if (op === 'division') return 'Division';
-        if (op === 'general') return 'Mix';
+        if (op === 'general') {
+            const selected = this.operations();
+            if (selected.length > 0) {
+                return `Mix (${selected.map((o) => this.getOperationLabel(o)).join(', ')})`;
+            }
+            return 'Mix';
+        }
         return 'Addition';
     }
 }

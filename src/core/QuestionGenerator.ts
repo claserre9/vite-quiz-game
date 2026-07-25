@@ -74,6 +74,8 @@ export interface GenerateOptions {
     table?: number | null;
     tables?: number[] | null;
     maxFactor?: number | null;
+    /** Restricts a "general"/mixed session to a subset of operations instead of all four */
+    operations?: Exclude<Operation, 'general'>[] | null;
     /** Per-operation fact history, used to bias generation toward facts the learner struggles with */
     factRecords?: Partial<
         Record<Exclude<Operation, 'general'>, Record<string, FactStat>>
@@ -91,6 +93,37 @@ export function generateQuestions(
 ): Question[] {
     const count = options.count ?? 20;
     const tables = options.tables;
+    const operations = options.operations;
+
+    // Restrict a "general" session to the requested subset of operations. Sprint and
+    // table-gaps drill a single ordered table, so mixing operations doesn't apply — they
+    // just use the first requested operation instead.
+    if (op === 'general' && operations && operations.length > 0) {
+        if (exercise === 'sprint' || exercise === 'table-gaps') {
+            return generateQuestions(operations[0], exercise, {
+                ...options,
+                operations: null,
+            });
+        }
+        if (operations.length === 1) {
+            return generateQuestions(operations[0], exercise, {
+                ...options,
+                operations: null,
+            });
+        }
+        const perOp = Math.ceil(count / operations.length);
+        const all: Question[] = [];
+        for (const o of operations) {
+            all.push(
+                ...generateQuestions(o, exercise, {
+                    ...options,
+                    operations: null,
+                    count: perOp,
+                })
+            );
+        }
+        return shuffleArray(all).slice(0, count);
+    }
 
     // When a tables array is given and no explicit table is set, use the first entry
     const resolvedOptions: GenerateOptions =

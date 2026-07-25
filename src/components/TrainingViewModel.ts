@@ -190,8 +190,22 @@ const TABLE_EXERCISES: ExerciseType[] = [
     'table-gaps',
 ];
 
+const OPERATION_CHOICES: Exclude<Operation, 'general'>[] = [
+    'addition',
+    'soustraction',
+    'multiplication',
+    'division',
+];
+
+const OPERATION_LABELS: Record<Exclude<Operation, 'general'>, string> = {
+    addition: '➕ Addition',
+    soustraction: '➖ Soustraction',
+    multiplication: '✖️ Multiplication',
+    division: '➗ Division',
+};
+
 export class TrainingViewModel extends BaseViewModel {
-    op = observable<Exclude<Operation, 'general'> | 'general'>('addition');
+    operations = observableArray<Exclude<Operation, 'general'>>(['addition']);
     exercise = observable<ExerciseType>('classic');
     tables = observableArray<number>([2]);
     difficulty = observable<Difficulty>('moyen');
@@ -199,12 +213,19 @@ export class TrainingViewModel extends BaseViewModel {
 
     categories = CATEGORIES;
     categoryLabels = CATEGORY_LABELS;
+    operationChoices = OPERATION_CHOICES;
 
     visibleExercises = pureComputed(() =>
         EXERCISE_INFOS.filter((e) => e.category === this.category())
     );
 
     usesTables = pureComputed(() => TABLE_EXERCISES.includes(this.exercise()));
+
+    // Number-sense exercises always force op to 'general' internally, so the
+    // operation picker doesn't apply to them.
+    usesOperations = pureComputed(
+        () => !NUMBER_SENSE_EXERCISES.includes(this.exercise())
+    );
 
     constructor(context: PageJS.Context | undefined) {
         super(context);
@@ -213,6 +234,10 @@ export class TrainingViewModel extends BaseViewModel {
 
     categoryTone(category: ExerciseCategory): string {
         return CATEGORY_TONES[category];
+    }
+
+    operationLabel(op: Exclude<Operation, 'general'>): string {
+        return OPERATION_LABELS[op];
     }
 
     selectCategory = (category: ExerciseCategory) => {
@@ -237,15 +262,18 @@ export class TrainingViewModel extends BaseViewModel {
           </div>
 
           <div class="row g-3 align-items-end">
-              <div class="col-12 col-md-6">
-                <label class="form-label fw-bold">Type d'opération</label>
-                <select class="form-select qm-select" data-bind="value: op">
-                  <option value="addition">➕ Addition</option>
-                  <option value="soustraction">➖ Soustraction</option>
-                  <option value="multiplication">✖️ Multiplication</option>
-                  <option value="division">➗ Division</option>
-                  <option value="general">🎲 Mode aléatoire</option>
-                </select>
+              <div class="col-12" data-bind="visible: usesOperations">
+                <label class="form-label fw-bold">
+                  Type d'opération
+                  <span class="qm-muted ms-1" style="font-weight:400; font-size:0.82rem;" data-bind="visible: operations().length === 0">— choisir au moins une</span>
+                  <span class="qm-muted ms-1" style="font-weight:400; font-size:0.82rem;" data-bind="visible: operations().length > 1">— mode mixte</span>
+                </label>
+                <div class="d-flex flex-wrap gap-2 mb-3" data-bind="foreach: operationChoices">
+                  <label class="qm-table-tag qm-table-tag--wide" data-bind="css: { 'qm-table-tag--active': $root.operations().indexOf($data) >= 0 }">
+                    <input type="checkbox" style="display:none" data-bind="checked: $root.operations, checkedValue: $data">
+                    <span data-bind="text: $root.operationLabel($data)"></span>
+                  </label>
+                </div>
               </div>
               <div class="col-12 col-md-6">
                 <label class="form-label fw-bold">Difficulté</label>
@@ -297,7 +325,7 @@ export class TrainingViewModel extends BaseViewModel {
           </div>
 
           <div class="mt-4 d-flex flex-wrap gap-2 justify-content-center">
-            <button class="btn qm-btn px-4 py-3" data-bind="click: startTraining, disable: usesTables() && tables().length === 0">🚀 Commencer</button>
+            <button class="btn qm-btn px-4 py-3" data-bind="click: startTraining, disable: (usesTables() && tables().length === 0) || (usesOperations() && operations().length === 0)">🚀 Commencer</button>
             <a href="/" class="btn qm-btn-secondary px-4 py-3">Annuler</a>
           </div>
         </div>
@@ -311,7 +339,14 @@ export class TrainingViewModel extends BaseViewModel {
         const tables = this.tables();
         if (usesTables && tables.length === 0) return;
         const needsGeneral = NUMBER_SENSE_EXERCISES.includes(exercise);
-        const op = needsGeneral ? 'general' : this.op();
+        const selectedOps = this.operations();
+        if (!needsGeneral && selectedOps.length === 0) return;
+        const isMulti = !needsGeneral && selectedOps.length > 1;
+        const op = needsGeneral
+            ? 'general'
+            : isMulti
+              ? 'general'
+              : selectedOps[0];
         const maxFactor = DIFFICULTY_MAX[this.difficulty()];
         const qs = new URLSearchParams({
             mode: 'training',
@@ -320,6 +355,7 @@ export class TrainingViewModel extends BaseViewModel {
             difficulty: this.difficulty(),
         });
         if (usesTables) qs.set('tables', tables.join(','));
+        if (isMulti) qs.set('operations', selectedOps.join(','));
         const path = `/quiz/${op}?${qs.toString()}`;
         if (window.page && typeof window.page.show === 'function') {
             window.page.show(path);

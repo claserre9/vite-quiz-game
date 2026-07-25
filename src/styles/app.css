@@ -392,6 +392,18 @@ a {
     color: #fff;
 }
 
+.qm-table-tag--active:hover {
+    color: #fff;
+}
+
+/* Wider variant for text labels (e.g. operation names) instead of single numbers */
+.qm-table-tag--wide {
+    width: auto;
+    height: auto;
+    padding: 0.55rem 1rem;
+    white-space: nowrap;
+}
+
 .qm-feature-icon {
     display: inline-grid;
     place-items: center;
